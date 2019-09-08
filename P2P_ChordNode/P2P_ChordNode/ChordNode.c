@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 	printf("*****************************************************************\n");
 	printf("*         DHT-Based P2P Protocol (CHORD) Node Controller        *\n");
 	printf("*                   Ver. 0.1     Sep. 8, 2019                   *\n");
-	printf("*                      (c) Lee Ki jong                          *\n");
+	printf("*                       (c) Lee Ki jong                         *\n");
 	printf("*****************************************************************\n");
 
 	myNode.nodeInfo.addrInfo.sin_family = AF_INET;
