@@ -163,6 +163,67 @@ int main(int argc, char* argv[])
 			switch (select) {
 
 			case 'c':
+				if (createOK) {
+					printf("\n[ERROR] 이미 네트워크를 생성하였습니다.\n");
+					printf("[ERROR] 다시 선택해 주세요.\n\n");
+					continue;
+				}
+
+				myNode.chordInfo.fingerInfo.Pre = myNode.nodeInfo;
+
+				for (i = 0; i < baseM; i++)
+					myNode.chordInfo.fingerInfo.finger[i] = myNode.nodeInfo;
+
+				myNode.fileInfo.fileNum = 0;
+				myNode.chordInfo.FRefInfo.fileNum = 0;
+
+				rqSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				retVal = setsockopt(rqSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
+
+				if (retVal == SOCKET_ERROR) {
+					printf("\n[ERROR] rqSock 옵션 설정 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				rpSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				if (bind(rpSock, (struct sockaddr*) & myNode.nodeInfo.addrInfo, sizeof(myNode.nodeInfo.addrInfo)) < 0) {
+					printf("\n[ERROR] rpSock 주소 바인드 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				ffSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				retVal = setsockopt(ffSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
+
+				if (retVal == SOCKET_ERROR) {
+					printf("\n[ERROR] rqSock 옵션 설정 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				ppSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				retVal = setsockopt(ppSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
+
+				if (retVal == SOCKET_ERROR) {
+					printf("\n[ERROR] rqSock 옵션 설정 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				createOK = 1;
+				printf("\nCHORD> 코드 네트워크를 생성하였습니다.\n\n");
+
+				memset(&helpMsg, 0, sizeof(helpMsg));
+				memset(&resMsg, 0, sizeof(resMsg));
+
+				hThread[0] = (HANDLE)_beginthreadex(NULL, 0, (void*)procRecvMsg, (void*)& exitFlag, 0, NULL);
+				hThread[1] = (HANDLE)_beginthreadex(NULL, 0, (void*)procPP, (void*)& exitFlag, 0, NULL);
+				hThread[2] = (HANDLE)_beginthreadex(NULL, 0, (void*)procFF, (void*)& exitFlag, 0, NULL);
 				break;
 			case 'j':
 				break;
@@ -317,5 +378,752 @@ int modPlus(int modN, int addend1, int addend2)
 		return addend1 + addend2;
 	else
 		return (addend1 + addend2) - modN;
+}
+void procRecvMsg(void* SOCKET) {
+
+	while (!exitFlag) {
+		int retVal, i;
+		chordHeaderType helpMsg, resMsg;
+		struct sockaddr_in clintaddr;
+		int addrlen = sizeof(clintaddr);
+
+		memset(&helpMsg, 0, sizeof(helpMsg));
+		memset(&resMsg, 0, sizeof(resMsg));
+
+
+		retVal = -1;
+		while (1) {
+			retVal = recvfrom(rpSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & clintaddr, &addrlen);
+			if (retVal >= 0) {
+				break;
+			}
+
+		}
+
+		if (resMsg.msgID == 1) {
+			//Join Info
+			if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.finger[0].ID)
+			{
+				helpMsg.msgID = 1;
+				helpMsg.msgType = 1;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+				sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+					(struct sockaddr*) & clintaddr, addrlen);
+
+			}
+			else {
+				if (modIn(ringSize, resMsg.nodeInfo.ID, myNode.chordInfo.fingerInfo.Pre.ID, myNode.nodeInfo.ID, 0, 1)) {
+					helpMsg.msgID = 1;
+					helpMsg.msgType = 1;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+					sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & clintaddr, addrlen);
+				}
+				else if (modIn(ringSize, resMsg.nodeInfo.ID, myNode.nodeInfo.ID, myNode.chordInfo.fingerInfo.finger[0].ID, 0, 1)) {
+					helpMsg.msgID = 1;
+					helpMsg.msgType = 1;
+					helpMsg.nodeInfo = myNode.chordInfo.fingerInfo.finger[0];
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+					sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & clintaddr, addrlen);
+				}
+				else {
+					//Find Predecessor Req
+					nodeInfoType helper, pred;
+					helper = myNode.chordInfo.fingerInfo.Pre;
+					memset(&helpMsg, 0, sizeof(helpMsg));
+					helpMsg.msgID = 7;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = resMsg.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & helper.addrInfo, sizeof(helper.addrInfo));
+
+					retVal = -1;
+					while (1) {
+
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & helper.addrInfo, addrlen);
+						if (retVal >= 0)
+							break;
+					}
+
+					pred = resMsg.nodeInfo;
+
+
+
+
+					//Successor Info Req
+					memset(&helpMsg, 0, sizeof(helpMsg));
+					helpMsg.msgID = 5;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & pred.addrInfo, sizeof(pred.addrInfo));
+
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & pred.addrInfo, addrlen);
+						if (retVal >= 0)
+							break;
+					}
+
+					helpMsg.msgID = 1;
+					helpMsg.msgType = 1;
+					helpMsg.nodeInfo = resMsg.nodeInfo;
+					helpMsg.moreInfo = 0;
+
+					sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & clintaddr, addrlen);
+				}
+			}
+
+
+
+		}
+		else if (resMsg.msgID == 2) {
+			//MoveKeys
+			int keyscount = 0;
+
+			for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++) {
+				if (modIn(ringSize, myNode.chordInfo.FRefInfo.fileRef[i].Key, myNode.chordInfo.fingerInfo.Pre.ID, resMsg.nodeInfo.ID, 0, 1)) {
+					keyscount++;
+
+				}
+			}
+
+			helpMsg.moreInfo = keyscount;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & clintaddr, addrlen);
+
+			for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++) {
+
+				if (modIn(ringSize, myNode.chordInfo.FRefInfo.fileRef[i].Key, myNode.chordInfo.fingerInfo.Pre.ID, resMsg.nodeInfo.ID, 0, 1)) {
+
+					helpMsg.msgID = 2;
+					helpMsg.msgType = 1;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.fileInfo = myNode.chordInfo.FRefInfo.fileRef[i];
+					helpMsg.moreInfo = keyscount;
+					helpMsg.bodySize = sizeof(keyscount);
+
+					sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & clintaddr, addrlen);
+
+
+
+					if (myNode.chordInfo.FRefInfo.fileRef[i].owner.ID == myNode.nodeInfo.ID) {
+
+						for (int j = i; j < myNode.chordInfo.FRefInfo.fileNum; j++) {
+							myNode.chordInfo.FRefInfo.fileRef[j] = myNode.chordInfo.FRefInfo.fileRef[j + 1];
+						}
+						myNode.fileInfo.fileRef[i].refOwner = resMsg.nodeInfo;
+						myNode.chordInfo.FRefInfo.fileNum--;
+						i--;
+						continue;
+					}
+					helpMsg.msgID = 12;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = resMsg.nodeInfo;
+					helpMsg.fileInfo = myNode.chordInfo.FRefInfo.fileRef[i];
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & myNode.chordInfo.FRefInfo.fileRef[i].owner.addrInfo, addrlen);
+
+					chordHeaderType resMsg2;
+
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg2, sizeof(resMsg2), 0, (struct sockaddr*) & myNode.chordInfo.FRefInfo.fileRef[i].owner.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+					}
+
+					for (int j = i; j < myNode.chordInfo.FRefInfo.fileNum; j++) {
+						myNode.chordInfo.FRefInfo.fileRef[j] = myNode.chordInfo.FRefInfo.fileRef[j + 1];
+					}
+					myNode.chordInfo.FRefInfo.fileNum--;
+					i--;
+
+				}
+
+			}
+		}
+		else if (resMsg.msgID == 3) {
+			//pred info
+			helpMsg.msgID = 3;
+			helpMsg.msgType = 1;
+			helpMsg.nodeInfo = myNode.chordInfo.fingerInfo.Pre;
+			helpMsg.moreInfo = 0;
+			helpMsg.bodySize = 0;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & clintaddr, addrlen);
+		}
+		else if (resMsg.msgID == 4) {
+			//pred update
+			myNode.chordInfo.fingerInfo.Pre = resMsg.nodeInfo;
+			helpMsg.msgID = 4;
+			helpMsg.msgType = 1;
+			helpMsg.nodeInfo = myNode.nodeInfo;
+			helpMsg.moreInfo = 1;
+			helpMsg.bodySize = 0;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & clintaddr, addrlen);
+		}
+		else if (resMsg.msgID == 5) {
+			//succ info
+
+			helpMsg.msgID = 5;
+			helpMsg.msgType = 1;
+			helpMsg.nodeInfo = myNode.chordInfo.fingerInfo.finger[0];
+			helpMsg.moreInfo = 0;
+			helpMsg.bodySize = 0;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & clintaddr, addrlen);
+		}
+		else if (resMsg.msgID == 6) {
+			//succ update
+			myNode.chordInfo.fingerInfo.finger[0] = resMsg.nodeInfo;
+			helpMsg.msgID = 6;
+			helpMsg.msgType = 1;
+			helpMsg.nodeInfo = myNode.nodeInfo;
+			helpMsg.moreInfo = 1;
+			helpMsg.bodySize = 0;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & clintaddr, addrlen);
+		}
+		else if (resMsg.msgID == 7) {
+			//Find Predecessor
+
+			if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.finger[0].ID) //the initial node
+			{
+				helpMsg.msgID = 7;
+				helpMsg.msgType = 1;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+				sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+					(struct sockaddr*) & clintaddr, addrlen);
+			}
+			else {
+				nodeInfoType pred;
+				pred = myNode.chordInfo.fingerInfo.Pre;
+				while (1) {
+					if (modIn(ringSize, resMsg.nodeInfo.ID, pred.ID, myNode.nodeInfo.ID, 0, 1)) {
+						helpMsg.msgID = 7;
+						helpMsg.msgType = 1;
+						helpMsg.nodeInfo = pred;
+						helpMsg.moreInfo = 0;
+						helpMsg.bodySize = 0;
+						sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+							(struct sockaddr*) & clintaddr, addrlen);
+						break;
+					}
+					else if (modIn(ringSize, resMsg.nodeInfo.ID, myNode.nodeInfo.ID, myNode.chordInfo.fingerInfo.finger[0].ID, 0, 1)) {
+
+						helpMsg.msgID = 7;
+						helpMsg.msgType = 1;
+						helpMsg.nodeInfo = myNode.nodeInfo;
+						helpMsg.moreInfo = 0;
+						helpMsg.bodySize = 0;
+						sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+							(struct sockaddr*) & clintaddr, addrlen);
+						break;
+					}
+					else {
+						helpMsg.msgID = 3;
+						helpMsg.msgType = 0;
+						helpMsg.nodeInfo = myNode.nodeInfo;
+						helpMsg.moreInfo = 0;
+						helpMsg.bodySize = 0;
+						sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+							(struct sockaddr*) & pred.addrInfo, addrlen);
+
+						chordHeaderType resMsg2;
+						retVal = -1;
+						while (1) {
+							retVal = recvfrom(rqSock, (char*)& resMsg2, sizeof(resMsg2), 0, (struct sockaddr*) & pred.addrInfo, &addrlen);
+							if (retVal >= 0)
+								break;
+						}
+						pred = resMsg2.nodeInfo;
+
+					}
+				}
+			}
+
+		}
+		else if (resMsg.msgID == 8) {
+			// File Reference Add
+
+			//Succ에 참조정보 넣기			
+			myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum]
+				= resMsg.fileInfo;
+			myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum].refOwner = myNode.nodeInfo;
+			myNode.chordInfo.FRefInfo.fileNum++;
+
+			helpMsg.msgID = 8;
+			helpMsg.msgType = 1;
+			helpMsg.nodeInfo = myNode.nodeInfo;
+			helpMsg.fileInfo = myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum - 1];
+			helpMsg.moreInfo = 1;
+			helpMsg.bodySize = 0;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0, (struct sockaddr*) & clintaddr, addrlen);
+		}
+		else if (resMsg.msgID == 9) {
+			//File Reference Delete 
+			for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++) {
+				if (myNode.chordInfo.FRefInfo.fileRef[i].Key == resMsg.fileInfo.Key) {
+					memset(&myNode.chordInfo.FRefInfo.fileRef[i], 0, sizeof(myNode.chordInfo.FRefInfo.fileRef[i]));//Succ에 참조정보 삭제		
+					for (int j = i; j < myNode.chordInfo.FRefInfo.fileNum - 1; j++) {
+						myNode.chordInfo.FRefInfo.fileRef[j] = myNode.chordInfo.FRefInfo.fileRef[j + 1];//Succ에 참조정보 재정렬				
+					}
+				}
+			}
+			myNode.chordInfo.FRefInfo.fileNum--;
+
+			memset(&helpMsg, 0, sizeof(helpMsg));
+
+			helpMsg.msgID = 9;
+			helpMsg.msgType = 1;
+			helpMsg.moreInfo = 1;
+			helpMsg.bodySize = 0;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & clintaddr, addrlen);
+
+		}
+		else if (resMsg.msgID == 10) {
+			//FileDown Request
+
+			fsSock = socket(AF_INET, SOCK_STREAM, 0);
+			while (1) {
+				if (connect(fsSock, (struct sockaddr*) & resMsg.nodeInfo.addrInfo, sizeof(struct sockaddr_in)) != -1) {
+					break;
+				}
+			}
+
+
+
+
+			for (i = 0; i < myNode.fileInfo.fileNum; i++) {
+				if (resMsg.fileInfo.Key == myNode.fileInfo.fileRef[i].Key) {
+					strcpy(filename, myNode.fileInfo.fileRef[i].Name);
+					FILE* fp = fopen(filename, "r");
+					int filesize = 0;
+					if (fp == NULL) {
+						perror("파일 입출력 오류");
+						return -1;
+					}
+					fseek(fp, 0, SEEK_END);
+					filesize = ftell(fp);
+					rewind(fp);
+					fclose(fp);
+					helpMsg.msgID = 10;
+					helpMsg.msgType = 1;
+					helpMsg.moreInfo = 1;
+					helpMsg.bodySize = filesize;
+					sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0, (struct sockaddr*) & clintaddr, addrlen);
+					(HANDLE)_beginthreadex(NULL, 0, (void*)fileSender, (void*)& exitFlag, 0, NULL);
+					break;
+				}
+			}
+
+
+		}
+		else if (resMsg.msgID == 11) {
+			//File Reference Info 
+			memset(&helpMsg, 0, sizeof(helpMsg));
+			helpMsg.moreInfo = 0;
+			for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++) {
+				if (resMsg.fileInfo.Key == myNode.chordInfo.FRefInfo.fileRef[i].Key) {
+					helpMsg.fileInfo = myNode.chordInfo.FRefInfo.fileRef[i];
+					helpMsg.moreInfo = 1;
+					break;
+				}
+			}
+			helpMsg.msgID = 11;
+			helpMsg.msgType = 1;
+			helpMsg.nodeInfo = myNode.nodeInfo;
+			helpMsg.bodySize = 0;
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0, (struct sockaddr*) & clintaddr, addrlen);
+
+		}
+		else if (resMsg.msgID == 12)
+		{
+			memset(&helpMsg, 0, sizeof(helpMsg));
+			helpMsg.moreInfo = 1;
+			for (i = 0; i < myNode.fileInfo.fileNum; i++) {
+				if (resMsg.fileInfo.Key == myNode.fileInfo.fileRef[i].Key) {
+					myNode.fileInfo.fileRef[i].refOwner = resMsg.nodeInfo;
+					break;
+				}
+			}
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0, (struct sockaddr*) & clintaddr, addrlen);
+		}
+		else if (resMsg.msgID == 13)
+		{
+			//노드 생존 확인
+			memset(&helpMsg, 0, sizeof(helpMsg));
+			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0, (struct sockaddr*) & clintaddr, addrlen);
+		}
+
+
+	}
+}
+void procPP(void* SOCKET) {
+
+	while (!exitFlag) {
+		int i;
+		int PPsucc2 = 0;
+		int retVal;
+		chordHeaderType helpMsg, resMsg, resMsg2;
+		int addrlen = sizeof(struct sockaddr_in);
+		if (myNode.chordInfo.fingerInfo.finger[0].ID == myNode.nodeInfo.ID) {
+			//the init Node
+		}
+		else {
+			memset(&helpMsg, 0, sizeof(helpMsg));
+			helpMsg.msgID = 13;
+			helpMsg.msgType = 0;
+			helpMsg.nodeInfo = myNode.nodeInfo;
+			helpMsg.moreInfo = 0;
+			helpMsg.bodySize = 0;
+
+			sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & myNode.chordInfo.fingerInfo.Pre.addrInfo, sizeof(myNode.chordInfo.fingerInfo.Pre.addrInfo));
+			retVal = -1;
+			retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.Pre.addrInfo, &addrlen);
+
+			if (retVal < 0) {
+
+				for (i = 0; i < myNode.fileInfo.fileNum; i++)
+				{
+					if (myNode.fileInfo.fileRef[i].refOwner.ID == myNode.chordInfo.fingerInfo.Pre.ID)
+						myNode.fileInfo.fileRef[i].refOwner = myNode.nodeInfo;
+				}
+
+
+				myNode.chordInfo.fingerInfo.Pre.ID = 0;
+				PPsucc2 = 1;
+				printf("\nCHORD> leave 진행중...\n");
+
+
+			}
+			for (i = 0; i < baseM; i++) {
+
+				memset(&helpMsg, 0, sizeof(helpMsg));
+				helpMsg.msgID = 13;
+				helpMsg.msgType = 0;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+
+				if (myNode.chordInfo.fingerInfo.finger[i].ID == myNode.nodeInfo.ID) {
+					//the special case
+				}
+				else {
+					sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[i].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[i].addrInfo));
+					retVal = -1;
+					retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[i].addrInfo, &addrlen);
+
+					if (retVal < 0) {
+						printf("\nCHORD> leave 진행중...\n");
+						PPsucc2 = 1;
+						nodeInfoType pred;
+						if (i == baseM - 1) {
+							myNode.chordInfo.fingerInfo.finger[i] = myNode.chordInfo.fingerInfo.Pre;
+						}
+						else {
+							myNode.chordInfo.fingerInfo.finger[i] = myNode.chordInfo.fingerInfo.finger[i + 1];
+
+						}
+						if (i == 0) {
+							pred = myNode.chordInfo.fingerInfo.finger[i];
+						}
+					}
+
+				}
+
+			}
+
+
+
+		}
+
+		if (myNode.chordInfo.fingerInfo.Pre.ID == 0) {
+			nodeInfoType succ, temp;
+			succ = myNode.chordInfo.fingerInfo.finger[0];
+
+			memset(&helpMsg, 0, sizeof(helpMsg));
+			helpMsg.msgID = 13;
+			helpMsg.msgType = 0;
+			helpMsg.nodeInfo = myNode.nodeInfo;
+			helpMsg.moreInfo = 0;
+			helpMsg.bodySize = 0;
+
+			sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+				(struct sockaddr*) & succ.addrInfo, sizeof(succ.addrInfo));
+			retVal = -1;
+			retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & succ.addrInfo, &addrlen);
+
+			if (retVal < 0) {
+				myNode.chordInfo.fingerInfo.Pre = myNode.nodeInfo;
+
+				for (i = 0; i < baseM; i++)
+					myNode.chordInfo.fingerInfo.finger[i] = myNode.nodeInfo;
+
+
+			}
+			else {
+				while (1) {
+					memset(&helpMsg, 0, sizeof(helpMsg));
+					helpMsg.msgID = 5;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & succ.addrInfo, sizeof(succ.addrInfo));
+					retVal = -1;
+					retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & succ.addrInfo, &addrlen);
+
+					if (retVal < 0) {
+						myNode.chordInfo.fingerInfo.Pre = temp;
+
+						helpMsg.msgID = 6;
+						helpMsg.msgType = 1;
+						helpMsg.nodeInfo = myNode.nodeInfo;
+						helpMsg.moreInfo = 0;
+						helpMsg.bodySize = 0;
+						sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+							(struct sockaddr*) & temp.addrInfo, addrlen);
+
+						recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & temp.addrInfo, &addrlen);
+
+						for (i = 0; i < baseM; i++) {
+							if (myNode.chordInfo.fingerInfo.finger[i].ID == 0) {
+								myNode.chordInfo.fingerInfo.finger[i] = myNode.nodeInfo;
+							}
+						}
+						break;
+					}
+					temp = succ;
+					succ = resMsg.nodeInfo;
+
+				}
+			}
+			PPsucc2 = 1;
+		}
+
+		int PPsucc = 1;
+		if (myNode.chordInfo.fingerInfo.Pre.ID != 0 && PPsucc == 1 && PPsucc2 == 1) {
+			for (int j = 0; j < baseM; j++)
+				if (myNode.chordInfo.fingerInfo.finger[j].ID == 0)
+					PPsucc = 0;
+			if (PPsucc) {
+				for (i = 0; i < myNode.fileInfo.fileNum; i++) {
+
+					if (myNode.chordInfo.fingerInfo.Pre.ID == myNode.nodeInfo.ID) {
+						for (int k = 0; k < myNode.fileInfo.fileNum; k++) {
+							myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum]
+								= myNode.fileInfo.fileRef[k];
+							myNode.chordInfo.FRefInfo.fileNum++;
+
+						}
+					}
+					memset(&helpMsg, 0, sizeof(helpMsg));
+					helpMsg.msgID = 13;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & myNode.fileInfo.fileRef[i].refOwner.addrInfo, sizeof(myNode.fileInfo.fileRef[i].refOwner.addrInfo));
+					retVal = -1;
+					retVal = recvfrom(ppSock, (char*)& resMsg2, sizeof(resMsg2), 0, (struct sockaddr*) & myNode.fileInfo.fileRef[i].refOwner.addrInfo, &addrlen);
+
+					if (retVal < 0) {
+						if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.Pre.ID) {
+							myNode.fileInfo.fileRef[i].refOwner = myNode.nodeInfo;//노드에 파일의 소유주를 자신으로 입력
+
+
+							myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum]
+								= myNode.fileInfo.fileRef[i];
+							myNode.chordInfo.FRefInfo.fileNum++;
+
+						}
+						else {
+							nodeType tempNode;
+
+							tempNode.nodeInfo = myNode.nodeInfo;
+							tempNode.nodeInfo.ID = myNode.fileInfo.fileRef[i].Key;
+							//Find Predecessor Request
+							memset(&helpMsg, 0, sizeof(helpMsg));
+							helpMsg.msgID = 7;
+							helpMsg.msgType = 0;
+							helpMsg.nodeInfo = tempNode.nodeInfo;
+							helpMsg.moreInfo = 0;
+							helpMsg.bodySize = 0;
+							nodeInfoType helper = myNode.chordInfo.fingerInfo.Pre;
+							sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+								(struct sockaddr*) & helper.addrInfo, sizeof(helper.addrInfo));
+
+							retVal = -1;
+							while (1) {
+								retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & helper.addrInfo, &addrlen);
+								if (retVal >= 0)
+									break;
+							}
+
+							//Successor Info Request
+							memset(&helpMsg, 0, sizeof(helpMsg));
+							helpMsg.msgID = 5;
+							helpMsg.msgType = 0;
+							helpMsg.nodeInfo = tempNode.nodeInfo;
+							helpMsg.moreInfo = 0;
+							helpMsg.bodySize = 0;
+
+
+							nodeInfoType pred = resMsg.nodeInfo;
+							sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+								(struct sockaddr*) & pred.addrInfo, sizeof(pred.addrInfo));
+							memset(&resMsg, 0, sizeof(resMsg));
+							retVal = -1;
+							while (1) {
+
+								retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & pred.addrInfo, &addrlen);
+								if (retVal >= 0)
+									break;
+
+								//fkey의 Successor
+								nodeInfoType succ = resMsg.nodeInfo;
+
+								//중복 확인
+								memset(&helpMsg, 0, sizeof(helpMsg));
+								helpMsg.msgID = 11;
+								helpMsg.msgType = 0;
+								helpMsg.nodeInfo = myNode.nodeInfo;
+								helpMsg.fileInfo.Key = myNode.fileInfo.fileRef[i].Key;
+								helpMsg.moreInfo = 0;
+								helpMsg.bodySize = 0;
+
+
+								sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+									(struct sockaddr*) & succ.addrInfo, sizeof(succ.addrInfo));
+								memset(&resMsg, 0, sizeof(resMsg));
+								retVal = -1;
+								while (1) {
+
+									retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & succ.addrInfo, &addrlen);
+									if (retVal >= 0)
+										break;
+								}
+
+
+
+								myNode.fileInfo.fileRef[i].refOwner = succ;
+
+
+								//key의 Successor에게 파일의 참조정보 입력요청
+								//File Reference Add Request
+								memset(&helpMsg, 0, sizeof(helpMsg));
+								helpMsg.msgID = 8;
+								helpMsg.msgType = 0;
+								helpMsg.nodeInfo = myNode.nodeInfo;
+								helpMsg.fileInfo = myNode.fileInfo.fileRef[i];
+								helpMsg.moreInfo = 0;
+								helpMsg.bodySize = 0;
+
+								sendto(ppSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+									(struct sockaddr*) & succ.addrInfo, sizeof(succ.addrInfo));
+								memset(&resMsg, 0, sizeof(resMsg));
+								retVal = -1;
+								while (1) {
+									retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & succ.addrInfo, &addrlen);
+									if (retVal >= 0)
+										break;
+								}
+
+							}
+
+
+						}
+					}
+
+				}
+			}
+			printf("\nCHORD> leave 종료...\n");
+		}
+
+	}
+
+
+}
+void procFF(void* SOCKET) {//fixfinger 메시지 처리 스레드
+
+	while (!exitFlag) {
+		int i;
+		chordHeaderType helpMsg, resMsg;
+		nodeInfoType succ;
+		int addrlen = sizeof(struct sockaddr_in);
+
+		if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.finger[0].ID) {
+			for (i = 1; i < baseM; i++) {
+				myNode.chordInfo.fingerInfo.finger[i] = myNode.nodeInfo;
+			}
+		}
+		else {
+			succ = myNode.chordInfo.fingerInfo.finger[0];
+
+			for (i = 1; i < baseM; i++) {
+				int IDKey = modPlus(ringSize, myNode.nodeInfo.ID, twoPow(i));
+
+				if (succ.ID == IDKey) {
+					myNode.chordInfo.fingerInfo.finger[i] = succ;
+				}
+				else if (modIn(ringSize, IDKey, myNode.nodeInfo.ID, succ.ID, 0, 1)) {
+					myNode.chordInfo.fingerInfo.finger[i] = succ;
+				}
+				else if (modIn(ringSize, IDKey, myNode.chordInfo.fingerInfo.Pre.ID, myNode.nodeInfo.ID, 0, 1)) {
+					myNode.chordInfo.fingerInfo.finger[i] = myNode.nodeInfo;
+				}
+				else {
+					memset(&helpMsg, 0, sizeof(helpMsg));
+					helpMsg.msgID = 5;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(ffSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & succ.addrInfo, sizeof(succ.addrInfo));
+
+					while (1) {
+						if (0 <= recvfrom(ffSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & succ.addrInfo, &addrlen))
+							break;
+					}
+					succ = resMsg.nodeInfo;
+					i--;
+				}
+			}
+
+		}
+	}
+
 }
 
