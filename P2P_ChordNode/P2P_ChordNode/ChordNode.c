@@ -226,6 +226,242 @@ int main(int argc, char* argv[])
 				hThread[2] = (HANDLE)_beginthreadex(NULL, 0, (void*)procFF, (void*)& exitFlag, 0, NULL);
 				break;
 			case 'j':
+				if (joinOK) {
+					printf("\n[ERROR] 이미 네트워크 내에 있습니다. 만들 수 없습니다.");
+					printf("\n[ERROR] 다시 선택해 주세요.\n");
+					continue;
+				}
+
+				myNode.chordInfo.fingerInfo.Pre.ID = -1;
+				for (i = 0; i < baseM; i++)
+					myNode.chordInfo.fingerInfo.finger[i].ID = -1;
+
+				myNode.fileInfo.fileNum = 0;
+				myNode.chordInfo.FRefInfo.fileNum = 0;
+
+
+
+				memset(&helper, 0, sizeof(helper));
+
+				helper.addrInfo.sin_family = AF_INET;
+
+				while (1) {
+					printf("\nCHORD> 헬퍼 노드의 IP 주소를 입력하세요 : ");
+					memset(helpIP, 0, 16);
+					scanf("%s", helpIP);
+					fflush(stdin);
+					if (inet_addr(helpIP) != INADDR_NONE) {
+						helper.addrInfo.sin_addr.s_addr = inet_addr(helpIP);
+						break;
+					}
+					else {
+						printf("\n[ERROR] IP 주소를 잘못 입력하였습니다.\n");
+						continue;
+					}
+				}
+
+				while (1) {
+					printf("\nCHORD> 헬퍼 노드의 Port 번호를 입력하세요 : ");
+					scanf("%d", &helpPort);
+					fflush(stdin);
+					if (helpPort > 65535 || helpPort < 49152) {
+						printf("[ERROR] 포트 번호는 49152 <= port <= 65535 로 적어주세요.\n");
+						continue;
+					}
+					else {
+						helper.addrInfo.sin_port = htons(helpPort);
+						break;
+					}
+				}
+
+
+				rqSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				retVal = setsockopt(rqSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
+
+				if (retVal == SOCKET_ERROR) {
+					printf("\n[ERROR] rqSock 옵션 설정 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				rpSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				if (bind(rpSock, (struct sockaddr*) & myNode.nodeInfo.addrInfo, sizeof(myNode.nodeInfo.addrInfo)) < 0) {
+					printf("\n[ERROR] rpSock 주소 바인드 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				ffSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				retVal = setsockopt(ffSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
+
+				if (retVal == SOCKET_ERROR) {
+					printf("\n[ERROR] ffSock 옵션 설정 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				ppSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+				retVal = setsockopt(ppSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
+
+				if (retVal == SOCKET_ERROR) {
+					printf("\n[ERROR] ppSock 옵션 설정 중 에러가 생겼습니다.\n");
+					printf("[ERROR] 프로그램을 종료합니다.\n\n");
+					exit(1);
+				}
+
+				//Join Info
+				helpMsg.msgID = 1;
+				helpMsg.msgType = 0;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+					(struct sockaddr*)& helper.addrInfo, sizeof(helper.addrInfo));
+
+				retVal = -1;
+				while (1) {
+
+					retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & helper.addrInfo, &addrlen);
+					if (retVal >= 0)
+						break;
+				}
+
+				succ = resMsg.nodeInfo;
+				myNode.chordInfo.fingerInfo.finger[0] = succ;
+
+				printf("\nCHORD> SUCC = IP : %s, Port : %d, ID : %d\n", inet_ntoa(succ.addrInfo.sin_addr), ntohs(succ.addrInfo.sin_port), succ.ID);
+
+
+
+
+				//moveKeys
+				memset(&helpMsg, 0, sizeof(helpMsg));
+				helpMsg.msgID = 2;
+				helpMsg.msgType = 0;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+
+				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+					(struct sockaddr*)& myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
+
+				memset(&resMsg, 0, sizeof(resMsg));
+
+				retVal = -1;
+				while (1) {
+
+					retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[0].addrInfo, &addrlen);
+					if (retVal >= 0)
+						break;
+				}
+
+				int filecount = 0;
+				filecount = resMsg.moreInfo;
+				printf("\nCHORD> You got %d keys from your succNode", filecount);
+				if (filecount > 0) {
+					for (i = 0; i < filecount; i++)
+					{
+						retVal = -1;
+						while (1) {
+
+							retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[0].addrInfo, &addrlen);
+							if (retVal >= 0)
+								break;
+						}
+
+						myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum] = resMsg.fileInfo;
+						myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum++].refOwner = myNode.nodeInfo;
+
+					}
+				}
+
+
+
+				//stabilize
+
+				memset(&helpMsg, 0, sizeof(helpMsg));
+				helpMsg.msgID = 3;
+				helpMsg.msgType = 0;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+
+
+
+				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+					(struct sockaddr*)& myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
+
+				memset(&resMsg, 0, sizeof(resMsg));
+				retVal = -1;
+				while (1) {
+					retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[0].addrInfo, &addrlen);
+					if (retVal >= 0)
+						break;
+				}
+				myNode.chordInfo.fingerInfo.Pre = resMsg.nodeInfo;
+
+				printf("\nCHORD> PRED = IP : %s, Port : %d, ID : %d\n", inet_ntoa(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_addr), ntohs(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_port), myNode.chordInfo.fingerInfo.Pre.ID);
+
+
+				memset(&helpMsg, 0, sizeof(helpMsg));
+				helpMsg.msgID = 6;
+				helpMsg.msgType = 0;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+
+				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+					(struct sockaddr*)& myNode.chordInfo.fingerInfo.Pre.addrInfo, sizeof(myNode.chordInfo.fingerInfo.Pre.addrInfo));
+
+				memset(&resMsg, 0, sizeof(resMsg));
+				retVal = -1;
+				while (1) {
+					retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.Pre.addrInfo, &addrlen);
+					if (retVal >= 0)
+						break;
+				}
+				if (resMsg.moreInfo == 1)
+				{
+					printf("\nCHORD> Your Pred's Succ has been updated as your Node\n");
+				}
+				memset(&helpMsg, 0, sizeof(helpMsg));
+				helpMsg.msgID = 4;
+				helpMsg.msgType = 0;
+				helpMsg.nodeInfo = myNode.nodeInfo;
+				helpMsg.moreInfo = 0;
+				helpMsg.bodySize = 0;
+
+				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+					(struct sockaddr*)& myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
+
+				memset(&resMsg, 0, sizeof(resMsg));
+				retVal = -1;
+				while (1) {
+
+					retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[0].addrInfo, &addrlen);
+					if (retVal >= 0)
+						break;
+				}
+				if (resMsg.moreInfo == 1)
+				{
+					printf("\nCHORD> Your Succ's Pred has been updated as your Node\n");
+				}
+				memset(&helpMsg, 0, sizeof(helpMsg));
+				memset(&resMsg, 0, sizeof(resMsg));
+
+				printf("CHORD> Node Join Success!!\n");
+
+				hThread[0] = (HANDLE)_beginthreadex(NULL, 0, (void*)procRecvMsg, (void*)& exitFlag, 0, NULL);
+
+				hThread[1] = (HANDLE)_beginthreadex(NULL, 0, (void*)procPP, (void*)& exitFlag, 0, NULL);
+
+				hThread[2] = (HANDLE)_beginthreadex(NULL, 0, (void*)procFF, (void*)& exitFlag, 0, NULL);
+
+				joinOK = 1;
 				break;
 			case 'l':
 				break;
