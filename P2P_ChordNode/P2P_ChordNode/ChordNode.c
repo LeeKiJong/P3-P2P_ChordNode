@@ -239,8 +239,6 @@ int main(int argc, char* argv[])
 				myNode.fileInfo.fileNum = 0;
 				myNode.chordInfo.FRefInfo.fileNum = 0;
 
-
-
 				memset(&helper, 0, sizeof(helper));
 
 				helper.addrInfo.sin_family = AF_INET;
@@ -273,7 +271,6 @@ int main(int argc, char* argv[])
 						break;
 					}
 				}
-
 
 				rqSock = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -335,9 +332,6 @@ int main(int argc, char* argv[])
 
 				printf("\nCHORD> SUCC = IP : %s, Port : %d, ID : %d\n", inet_ntoa(succ.addrInfo.sin_addr), ntohs(succ.addrInfo.sin_port), succ.ID);
 
-
-
-
 				//moveKeys
 				memset(&helpMsg, 0, sizeof(helpMsg));
 				helpMsg.msgID = 2;
@@ -379,8 +373,6 @@ int main(int argc, char* argv[])
 					}
 				}
 
-
-
 				//stabilize
 
 				memset(&helpMsg, 0, sizeof(helpMsg));
@@ -389,8 +381,6 @@ int main(int argc, char* argv[])
 				helpMsg.nodeInfo = myNode.nodeInfo;
 				helpMsg.moreInfo = 0;
 				helpMsg.bodySize = 0;
-
-
 
 				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
 					(struct sockaddr*)& myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
@@ -405,7 +395,6 @@ int main(int argc, char* argv[])
 				myNode.chordInfo.fingerInfo.Pre = resMsg.nodeInfo;
 
 				printf("\nCHORD> PRED = IP : %s, Port : %d, ID : %d\n", inet_ntoa(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_addr), ntohs(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_port), myNode.chordInfo.fingerInfo.Pre.ID);
-
 
 				memset(&helpMsg, 0, sizeof(helpMsg));
 				helpMsg.msgID = 6;
@@ -456,14 +445,17 @@ int main(int argc, char* argv[])
 				printf("CHORD> Node Join Success!!\n");
 
 				hThread[0] = (HANDLE)_beginthreadex(NULL, 0, (void*)procRecvMsg, (void*)& exitFlag, 0, NULL);
-
 				hThread[1] = (HANDLE)_beginthreadex(NULL, 0, (void*)procPP, (void*)& exitFlag, 0, NULL);
-
 				hThread[2] = (HANDLE)_beginthreadex(NULL, 0, (void*)procFF, (void*)& exitFlag, 0, NULL);
 
 				joinOK = 1;
 				break;
 			case 'l':
+
+				exitFlag = 1;
+
+				WaitForMultipleObjects(3, hThread, TRUE, INFINITE);
+
 				break;
 			case 'a':
 				break;
