@@ -458,6 +458,152 @@ int main(int argc, char* argv[])
 
 				break;
 			case 'a':
+				printf("CHORD> 추가할 파일은 프로그램과 같은 폴더 안에 위치하여야 합니다.\n");
+				printf("CHORD> 파일 이름의 최대 크기는 32입니다.\n");
+				printf("CHORD> 추가할 파일명을 입력하세요 : ");
+				scanf("%s", filename);
+				fkey = str_hash(filename);
+				printf("CHORD> 등록할 파일명 : %s, Key: %d\n", filename, fkey);
+
+				FILE* fd;
+
+				if ((fd = fopen(filename, "rt")) == NULL) {
+					printf("[ERROR] %s라는 이름의 파일은 존재하지 않습니다.\n", filename);
+					break;
+				}
+
+				fclose(fd);
+
+				for (i = 0; i < myNode.fileInfo.fileNum; i++) {
+					if (myNode.fileInfo.fileRef[i].Key == fkey) {
+						printf("[ERROR] %s 파일은 이미 등록 되었습니다.", filename);
+						break;
+
+					}
+				}
+
+				if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.Pre.ID) {	//노드가 하나라면
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Key = fkey;//노드에 파일의 키 값 입력
+					strcpy(myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Name, filename);//노드에 파일 이름 입력
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].owner = myNode.nodeInfo;//노드에 파일의 소유주를 자신으로 입력
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].refOwner = myNode.nodeInfo;//노드에 파일의 소유주를 자신으로 입력
+					myNode.fileInfo.fileNum++;//노드가 가지고 있는 파일 수 증가시킴
+
+					myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum]
+						= myNode.fileInfo.fileRef[myNode.fileInfo.fileNum - 1];
+					myNode.chordInfo.FRefInfo.fileNum++;
+
+				}
+				else {
+					nodeInfoType keyfile;
+					keyfile.ID = fkey;
+					helper = myNode.chordInfo.fingerInfo.Pre;
+
+					helper = myNode.chordInfo.fingerInfo.finger[0];
+
+					helpMsg.msgID = 7;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = keyfile;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & helper.addrInfo, sizeof(helper.addrInfo));
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & helper.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+
+					}
+
+					pred = resMsg.nodeInfo;
+					if (resMsg.moreInfo)
+						printf("CHORD> File의 Pred IP주소 : %s, Port 번호 : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
+
+
+					helpMsg.msgID = 5;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & pred.addrInfo, sizeof(pred.addrInfo));
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & pred.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+
+					}
+
+
+					//fkey의 Successor
+					succ = resMsg.nodeInfo;
+
+					if (resMsg.moreInfo)
+						printf("CHORD> File의 Successor IP주소 : %s, Port 번호 : %d, ID : %d\n", inet_ntoa(succ.addrInfo.sin_addr), ntohs(succ.addrInfo.sin_port), succ.ID);
+
+					//중복 확인
+					memset(&helpMsg, 0, sizeof(helpMsg));
+					helpMsg.msgID = 11;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.fileInfo.Key = fkey;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & succ.addrInfo, sizeof(succ.addrInfo));
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & succ.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+					}
+
+					if (resMsg.moreInfo) {
+						printf("[ERROR] %s 파일은 이미 등록 되었습니다.", filename);
+						break;
+					}
+
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Key = fkey;//노드에 파일의 키 값 입력
+					strcpy(myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Name, filename);//노드에 파일 이름 입력
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].owner = myNode.nodeInfo;//노드에 파일의 소유주를 자신으로 입력
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].refOwner = succ;//노드에 파일의 소유주를 자신으로 입력
+					myNode.fileInfo.fileNum++;//노드가 가지고 있는 파일 수 증가시킴
+
+											  //key의 Successor에게 파일의 참조정보 입력요청
+											  //File Reference Add Request
+					memset(&helpMsg, 0, sizeof(helpMsg));
+					helpMsg.msgID = 8;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.fileInfo = myNode.fileInfo.fileRef[myNode.fileInfo.fileNum - 1];
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & succ.addrInfo, sizeof(succ.addrInfo));
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & succ.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+					}
+					if (!mute)
+						printf("CHORD> FILE REF ADD RESPONSE MSG HAS BEEN RECEIVED!\n");
+					if (resMsg.moreInfo == 1) {
+						printf("CHORD> 파일 참조정보가 Successor에게 성공적으로 보내졌습니다.\n");
+					}
+				}
+				printf("\nCHORD> 파일 추가 완료!!\n");
 				break;
 			case 'd':
 				break;
