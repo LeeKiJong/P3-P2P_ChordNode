@@ -606,6 +606,99 @@ int main(int argc, char* argv[])
 				printf("\nCHORD> 파일 추가 완료!!\n");
 				break;
 			case 'd':
+
+				printf("CHORD> 삭제할 파일명을 입력하세요 : ");
+				scanf("%s", filename);
+
+				fkey = str_hash(filename);
+
+				//노드가 하나일 때
+				if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.finger[0].ID)
+				{
+					if (myNode.fileInfo.fileNum == 0)
+					{
+						printf("[ERROR] file(%s)은 존재하지 않습니다.\n", filename);
+					}
+					for (i = 0; i < myNode.fileInfo.fileNum; i++)
+					{
+						if (myNode.fileInfo.fileRef[i].Key == fkey)
+						{
+							myNode.fileInfo.fileNum--;
+							myNode.chordInfo.FRefInfo.fileNum--;
+							break;
+						}
+						if (i == myNode.fileInfo.fileNum - 1)
+						{
+							printf("[ERROR] file(%s)은 존재하지 않습니다.\n", filename);
+						}
+					}
+
+				}
+				else
+				{
+					int mycheck = 0;		//자신이 파일을 소유했는지 체크
+					int fingercheck = 0;	//자신의 핑거 노드가 파일을 소유했는지 체크
+					for (i = 0; i < myNode.fileInfo.fileNum; i++)
+					{
+						if (myNode.fileInfo.fileRef[i].Key == fkey)
+						{
+							mycheck = 1;
+							refOwner = myNode.fileInfo.fileRef[i].refOwner;
+
+							//File Reference Delete Request					
+							memset(&helpMsg, 0, sizeof(helpMsg));
+							helpMsg.msgID = 9;
+							helpMsg.msgType = 0;
+							helpMsg.fileInfo.Key = fkey;
+							helpMsg.moreInfo = 0;
+							helpMsg.bodySize = 0;
+							sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+								(struct sockaddr*) & refOwner.addrInfo, sizeof(refOwner.addrInfo));
+							//File Reference Delete Response				
+							memset(&resMsg, 0, sizeof(resMsg));
+							retVal = -1;
+							while (1) {
+								retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & refOwner.addrInfo, &addrlen);
+								if (retVal >= 0)
+									break;
+
+							}
+
+							if (resMsg.moreInfo)
+								printf("CHORD> Owner's FILE %s has been deleted!\n", filename);
+							//myNode의 파일 삭제	
+							for (i = 0; i < myNode.fileInfo.fileNum; i++) {
+								if (myNode.fileInfo.fileRef[i].Key == fkey) {
+									for (int j = i; j < myNode.fileInfo.fileNum - 1; j++) {
+										myNode.fileInfo.fileRef[j] = myNode.fileInfo.fileRef[j + 1];
+									}
+								}
+							}
+							myNode.fileInfo.fileNum--;
+
+							break;
+						}
+					}
+					if (mycheck) {
+						printf("CHORD> file(%s) 삭제 완료\n", filename);
+						break;
+					}
+					for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++)
+					{
+						if (myNode.chordInfo.FRefInfo.fileRef[i].Key == fkey)
+						{
+							fingercheck = 1;
+							printf("[ERROR] file(%s)은 N%d에 있습니다.\n", filename, myNode.chordInfo.FRefInfo.fileRef[i].owner.ID);
+							printf("[ERROR] 파일은 소유주만 삭제할 수 있습니다.\n");
+							break;
+						}
+					}
+					if (fingercheck)
+						break;
+
+					
+
+				}
 				break;
 			case 's':
 				break;
