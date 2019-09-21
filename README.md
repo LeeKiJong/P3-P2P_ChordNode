@@ -59,8 +59,8 @@ Within the download you'll find the following directories and files, logically g
 12. Node D: File5 Add
 13. Node D: File4 Download
 14. Node A: File1 Delete
-15. Node C: Network Leave
-[H3]`It can be regarded as normal operation when the above execution process proceeds without error.`
+15. Node C: Network Leave  
+**`It can be regarded as normal operation when the above execution process proceeds without error.`**
 
 ## Error solution
 * forced termination: Message ping-pong error due to network delay  `Restart Or Reboot`
