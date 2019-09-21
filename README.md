@@ -60,9 +60,8 @@ Within the download you'll find the following directories and files, logically g
 13. Node D: File4 Download
 14. Node A: File1 Delete
 15. Node C: Network Leave
-[[TIP]]
-It can be regarded as normal operation when the above execution process proceeds without error.
-[[/TIP]]
+[H3]`It can be regarded as normal operation when the above execution process proceeds without error.`
+
 ## Error solution
 * forced termination: Message ping-pong error due to network delay  `Restart Or Reboot`
 * Mute Mode Error: Ping-pong message send error due to message output. Can't resolve if it's a code issue or a message passing issue
