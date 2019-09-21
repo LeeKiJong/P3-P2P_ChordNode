@@ -696,11 +696,255 @@ int main(int argc, char* argv[])
 					if (fingercheck)
 						break;
 
-					
+					helper = myNode.chordInfo.fingerInfo.finger[0];
+
+					helpMsg.msgID = 7;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo.ID = fkey;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*)& helper.addrInfo, sizeof(helper.addrInfo));
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & helper.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+
+					}
+					pred = resMsg.nodeInfo;
+					if (resMsg.moreInfo)
+						printf("CHORD> File의 Pred IP주소 : %s, Port 번호 : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
+
+					helpMsg.msgID = 5;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*)& pred.addrInfo, sizeof(pred.addrInfo));
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & pred.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+
+					}
+					refOwner = resMsg.nodeInfo;
+					if (resMsg.moreInfo)
+						printf("CHORD> File의 refOwner IP주소 : %s, Port 번호 : %d, ID : %d\n", inet_ntoa(refOwner.addrInfo.sin_addr), ntohs(refOwner.addrInfo.sin_port), refOwner.ID);
+
+					helpMsg.msgID = 11;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.fileInfo.Key = fkey;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*)& refOwner.addrInfo, sizeof(refOwner.addrInfo));
+					memset(&resMsg, 0, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & refOwner.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+
+					}
+					if (resMsg.moreInfo) {
+						printf("[ERROR] file(%s)은 N%d에 있습니다.\n", filename, resMsg.fileInfo.owner.ID);
+						printf("[ERROR] 파일은 소유주만 삭제할 수 있습니다.\n");
+					}
+					else
+						printf("[ERROR] file(%s)은 존재하지 않습니다.\n", filename);
 
 				}
+
 				break;
+
 			case 's':
+				printf("CHORD> 다운로드할 파일명을 입력하세요 : ");
+				scanf("%s", filename);
+				fkey = str_hash(filename);
+
+				nodeInfoType Owner;
+
+				if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.finger[0].ID)
+				{
+					if (myNode.fileInfo.fileNum == 0)
+					{
+						printf("[ERROR] file(%s)은 존재하지 않습니다.\n", filename);
+					}
+					for (i = 0; i < myNode.fileInfo.fileNum; i++)
+					{
+						if (myNode.fileInfo.fileRef[i].Key == fkey)
+						{
+							printf("[ERROR] file(%s)은 이미 가지고 있습니다.\n", filename);
+							break;
+						}
+						if (i == myNode.fileInfo.fileNum - 1)
+						{
+							printf("[ERROR] file(%s)은 존재하지 않습니다.\n", filename);
+						}
+					}
+
+				}
+				else
+				{
+					int mycheck = 0;
+					int fingercheck = 0;
+					for (i = 0; i < myNode.fileInfo.fileNum; i++)
+					{
+						if (myNode.fileInfo.fileRef[i].Key == fkey)
+						{
+							mycheck = 1;
+							printf("[ERROR] file(%s)은 이미 가지고 있습니다.\n", filename);
+							break;
+						}
+					}
+					if (mycheck)
+						break;
+
+					for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++)
+					{
+						if (myNode.chordInfo.FRefInfo.fileRef[i].Key == fkey)
+						{
+							Owner = myNode.chordInfo.FRefInfo.fileRef[i].owner;
+							fingercheck = 1;
+							break;
+						}
+					}
+					if (!fingercheck) {
+
+						helper = myNode.chordInfo.fingerInfo.finger[0];
+						helpMsg.msgID = 7;
+						helpMsg.msgType = 0;
+						helpMsg.nodeInfo.ID = fkey;
+						helpMsg.moreInfo = 0;
+						helpMsg.bodySize = 0;
+
+						sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+							(struct sockaddr*) & helper.addrInfo, sizeof(helper.addrInfo));
+						memset(&resMsg, 0, sizeof(resMsg));
+						retVal = -1;
+						while (1) {
+							retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & helper.addrInfo, &addrlen);
+							if (retVal >= 0)
+								break;
+
+						}
+						pred = resMsg.nodeInfo;
+						if (resMsg.moreInfo)
+							printf("CHORD> File의 Pred IP주소 : %s, Port 번호 : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
+
+						helpMsg.msgID = 5;
+						helpMsg.msgType = 0;
+						helpMsg.nodeInfo = myNode.nodeInfo;
+						helpMsg.moreInfo = 0;
+						helpMsg.bodySize = 0;
+
+						sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+							(struct sockaddr*) & pred.addrInfo, sizeof(pred.addrInfo));
+						memset(&resMsg, 0, sizeof(resMsg));
+						retVal = -1;
+						while (1) {
+							retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & pred.addrInfo, &addrlen);
+							if (retVal >= 0)
+								break;
+
+						}
+						refOwner = resMsg.nodeInfo;
+						printf("CHORD> File의 refOwner IP주소 : %s, Port 번호 : %d, ID : %d\n", inet_ntoa(refOwner.addrInfo.sin_addr), ntohs(refOwner.addrInfo.sin_port), refOwner.ID);
+
+						helpMsg.msgID = 11;
+						helpMsg.msgType = 0;
+						helpMsg.nodeInfo = myNode.nodeInfo;
+						helpMsg.fileInfo.Key = fkey;
+						helpMsg.moreInfo = 0;
+						helpMsg.bodySize = 0;
+
+						sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+							(struct sockaddr*) & refOwner.addrInfo, sizeof(refOwner.addrInfo));
+						memset(&resMsg, 0, sizeof(resMsg));
+						retVal = -1;
+						while (1) {
+							retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & refOwner.addrInfo, &addrlen);
+
+							if (retVal >= 0)
+								break;
+
+						}
+						if (resMsg.moreInfo == 1) {
+							Owner = resMsg.fileInfo.owner;
+						}
+						else {
+							fingercheck = 2;
+							printf("[ERROR] file(%s)은 존재하지 않습니다.\n", filename);
+						}
+
+					}
+					if (fingercheck == 2)
+						break;
+
+					helpMsg.msgID = 10;
+					helpMsg.msgType = 0;
+					helpMsg.nodeInfo = myNode.nodeInfo;
+					helpMsg.fileInfo.Key = fkey;
+					helpMsg.moreInfo = 0;
+					helpMsg.bodySize = 0;
+					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
+						(struct sockaddr*) & Owner.addrInfo, sizeof(Owner.addrInfo));
+					if (!mute)
+						printf("\nCHORD> FILE DOWN REQUEST MSG HAS BEEN SENT!\n");
+					flSock = socket(AF_INET, SOCK_STREAM, 0); // for accepting file down request 
+					if (bind(flSock, (struct sockaddr*) & myNode.nodeInfo.addrInfo, sizeof(myNode.nodeInfo.addrInfo)) == SOCKET_ERROR) {
+						printf("\n[ERROR] flSock 바인드 중 에러가 생겼습니다.\n");
+						printf("[ERROR] 프로그램을 종료합니다.\n\n");
+						exit(1);
+					}
+
+					listen(flSock, SOMAXCONN);
+					if (flSock == SOCKET_ERROR) {
+						printf("\n[ERROR] flSock 설정 중 에러가 생겼습니다.\n");
+						printf("[ERROR] 프로그램을 종료합니다.\n\n");
+						exit(1);
+					}
+
+
+					memset(&resMsg, -1, sizeof(resMsg));
+					retVal = -1;
+					while (1) {
+						retVal = recvfrom(rqSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & Owner.addrInfo, &addrlen);
+						if (retVal >= 0)
+							break;
+
+
+					}
+					if (resMsg.moreInfo)
+					{
+						printf("CHORD> FILE OWNER = IP : %s, Port : %d, ID : %d\n", inet_ntoa(Owner.addrInfo.sin_addr), ntohs(Owner.addrInfo.sin_port), Owner.ID);
+
+						printf("\nCHORD> 다운로드 받을 파일의 이름 : %s\n", filename);
+						printf("\nCHORD> 다운로드 받을 파일의 키 : %d\n", fkey);
+						printf("CHORD> 다운로드 받을 파일의 크기 : %d\n", resMsg.bodySize);
+					}
+
+					struct sockaddr_in client;
+					int addr_len = sizeof(client);
+					if ((frSock = accept(flSock, &client, &addr_len)) == -1) {
+						fprintf(stderr, "[ERROR] error_name : %s\n", strerror(errno));
+						exit(1);
+					}
+
+					(HANDLE)_beginthreadex(NULL, 0, (void*)fileReceiver, (void*)& exitFlag, 0, NULL);
+
+				}
+
+
 				break;
 			case 'f':
 				break;
