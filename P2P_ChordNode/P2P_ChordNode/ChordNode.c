@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#pragma comment( lib, "ws2_32.lib")
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,8 +113,8 @@ int main(int argc, char* argv[])
 
 	printf("*****************************************************************\n");
 	printf("*         DHT-Based P2P Protocol (CHORD) Node Controller        *\n");
-	printf("*                   Ver. 0.1     Sep. 8, 2019                   *\n");
-	printf("*                       (c) Lee Ki jong                         *\n");
+	printf("*                   Ver. 0.1     Nov. 5, 2018                   *\n");
+	printf("*               (c) Kim Myeong ji & Lee Ki jong                 *\n");
 	printf("*****************************************************************\n");
 
 	myNode.nodeInfo.addrInfo.sin_family = AF_INET;
@@ -163,6 +163,7 @@ int main(int argc, char* argv[])
 			switch (select) {
 
 			case 'c':
+
 				if (createOK) {
 					printf("\n[ERROR] 이미 네트워크를 생성하였습니다.\n");
 					printf("[ERROR] 다시 선택해 주세요.\n\n");
@@ -224,8 +225,13 @@ int main(int argc, char* argv[])
 				hThread[0] = (HANDLE)_beginthreadex(NULL, 0, (void*)procRecvMsg, (void*)& exitFlag, 0, NULL);
 				hThread[1] = (HANDLE)_beginthreadex(NULL, 0, (void*)procPP, (void*)& exitFlag, 0, NULL);
 				hThread[2] = (HANDLE)_beginthreadex(NULL, 0, (void*)procFF, (void*)& exitFlag, 0, NULL);
+
 				break;
+
+
 			case 'j':
+
+
 				if (joinOK) {
 					printf("\n[ERROR] 이미 네트워크 내에 있습니다. 만들 수 없습니다.");
 					printf("\n[ERROR] 다시 선택해 주세요.\n");
@@ -238,6 +244,8 @@ int main(int argc, char* argv[])
 
 				myNode.fileInfo.fileNum = 0;
 				myNode.chordInfo.FRefInfo.fileNum = 0;
+
+
 
 				memset(&helper, 0, sizeof(helper));
 
@@ -271,6 +279,7 @@ int main(int argc, char* argv[])
 						break;
 					}
 				}
+
 
 				rqSock = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -317,7 +326,7 @@ int main(int argc, char* argv[])
 				helpMsg.moreInfo = 0;
 				helpMsg.bodySize = 0;
 				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-					(struct sockaddr*)& helper.addrInfo, sizeof(helper.addrInfo));
+					(struct sockaddr*) & helper.addrInfo, sizeof(helper.addrInfo));
 
 				retVal = -1;
 				while (1) {
@@ -332,6 +341,9 @@ int main(int argc, char* argv[])
 
 				printf("\nCHORD> SUCC = IP : %s, Port : %d, ID : %d\n", inet_ntoa(succ.addrInfo.sin_addr), ntohs(succ.addrInfo.sin_port), succ.ID);
 
+
+
+
 				//moveKeys
 				memset(&helpMsg, 0, sizeof(helpMsg));
 				helpMsg.msgID = 2;
@@ -341,7 +353,7 @@ int main(int argc, char* argv[])
 				helpMsg.bodySize = 0;
 
 				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-					(struct sockaddr*)& myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
+					(struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
 
 				memset(&resMsg, 0, sizeof(resMsg));
 
@@ -373,6 +385,8 @@ int main(int argc, char* argv[])
 					}
 				}
 
+
+
 				//stabilize
 
 				memset(&helpMsg, 0, sizeof(helpMsg));
@@ -382,8 +396,10 @@ int main(int argc, char* argv[])
 				helpMsg.moreInfo = 0;
 				helpMsg.bodySize = 0;
 
+
+
 				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-					(struct sockaddr*)& myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
+					(struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
 
 				memset(&resMsg, 0, sizeof(resMsg));
 				retVal = -1;
@@ -396,6 +412,7 @@ int main(int argc, char* argv[])
 
 				printf("\nCHORD> PRED = IP : %s, Port : %d, ID : %d\n", inet_ntoa(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_addr), ntohs(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_port), myNode.chordInfo.fingerInfo.Pre.ID);
 
+
 				memset(&helpMsg, 0, sizeof(helpMsg));
 				helpMsg.msgID = 6;
 				helpMsg.msgType = 0;
@@ -404,7 +421,7 @@ int main(int argc, char* argv[])
 				helpMsg.bodySize = 0;
 
 				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-					(struct sockaddr*)& myNode.chordInfo.fingerInfo.Pre.addrInfo, sizeof(myNode.chordInfo.fingerInfo.Pre.addrInfo));
+					(struct sockaddr*) & myNode.chordInfo.fingerInfo.Pre.addrInfo, sizeof(myNode.chordInfo.fingerInfo.Pre.addrInfo));
 
 				memset(&resMsg, 0, sizeof(resMsg));
 				retVal = -1;
@@ -425,7 +442,7 @@ int main(int argc, char* argv[])
 				helpMsg.bodySize = 0;
 
 				sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-					(struct sockaddr*)& myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
+					(struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[0].addrInfo, sizeof(myNode.chordInfo.fingerInfo.finger[0].addrInfo));
 
 				memset(&resMsg, 0, sizeof(resMsg));
 				retVal = -1;
@@ -445,11 +462,14 @@ int main(int argc, char* argv[])
 				printf("CHORD> Node Join Success!!\n");
 
 				hThread[0] = (HANDLE)_beginthreadex(NULL, 0, (void*)procRecvMsg, (void*)& exitFlag, 0, NULL);
+
 				hThread[1] = (HANDLE)_beginthreadex(NULL, 0, (void*)procPP, (void*)& exitFlag, 0, NULL);
+
 				hThread[2] = (HANDLE)_beginthreadex(NULL, 0, (void*)procFF, (void*)& exitFlag, 0, NULL);
 
 				joinOK = 1;
 				break;
+
 			case 'l':
 
 				exitFlag = 1;
@@ -457,7 +477,9 @@ int main(int argc, char* argv[])
 				WaitForMultipleObjects(3, hThread, TRUE, INFINITE);
 
 				break;
+
 			case 'a':
+
 				printf("CHORD> 추가할 파일은 프로그램과 같은 폴더 안에 위치하여야 합니다.\n");
 				printf("CHORD> 파일 이름의 최대 크기는 32입니다.\n");
 				printf("CHORD> 추가할 파일명을 입력하세요 : ");
@@ -605,8 +627,8 @@ int main(int argc, char* argv[])
 				}
 				printf("\nCHORD> 파일 추가 완료!!\n");
 				break;
-			case 'd':
 
+			case 'd':
 				printf("CHORD> 삭제할 파일명을 입력하세요 : ");
 				scanf("%s", filename);
 
@@ -705,7 +727,7 @@ int main(int argc, char* argv[])
 					helpMsg.bodySize = 0;
 
 					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-						(struct sockaddr*)& helper.addrInfo, sizeof(helper.addrInfo));
+						(struct sockaddr*) & helper.addrInfo, sizeof(helper.addrInfo));
 					memset(&resMsg, 0, sizeof(resMsg));
 					retVal = -1;
 					while (1) {
@@ -725,7 +747,7 @@ int main(int argc, char* argv[])
 					helpMsg.bodySize = 0;
 
 					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-						(struct sockaddr*)& pred.addrInfo, sizeof(pred.addrInfo));
+						(struct sockaddr*) & pred.addrInfo, sizeof(pred.addrInfo));
 					memset(&resMsg, 0, sizeof(resMsg));
 					retVal = -1;
 					while (1) {
@@ -746,7 +768,7 @@ int main(int argc, char* argv[])
 					helpMsg.bodySize = 0;
 
 					sendto(rqSock, (char*)& helpMsg, sizeof(helpMsg), 0,
-						(struct sockaddr*)& refOwner.addrInfo, sizeof(refOwner.addrInfo));
+						(struct sockaddr*) & refOwner.addrInfo, sizeof(refOwner.addrInfo));
 					memset(&resMsg, 0, sizeof(resMsg));
 					retVal = -1;
 					while (1) {
@@ -947,10 +969,43 @@ int main(int argc, char* argv[])
 
 				break;
 			case 'f':
+				printf("\nCHORD>Finger Table \n");
+				printf("CHORD> Pre = IP : %s, Port : %d, ID : %d\n", inet_ntoa(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_addr), ntohs(myNode.chordInfo.fingerInfo.Pre.addrInfo.sin_port), myNode.chordInfo.fingerInfo.Pre.ID);
+
+				for (i = 0; i < baseM; i++) {
+					printf("CHORD> finger[%d] = IP : %s, Port : %d, ID : %d\n", i, inet_ntoa(myNode.chordInfo.fingerInfo.finger[i].addrInfo.sin_addr), ntohs(myNode.chordInfo.fingerInfo.finger[i].addrInfo.sin_port), myNode.chordInfo.fingerInfo.finger[i].ID);
+				}
 				break;
 			case 'i':
+				printf("CHORD> myInfo = IP : %s, Port : %d, ID : %d\n", inet_ntoa(myNode.nodeInfo.addrInfo.sin_addr), ntohs(myNode.nodeInfo.addrInfo.sin_port), myNode.nodeInfo.ID);
+
+				for (i = 0; i < myNode.fileInfo.fileNum; i++) {
+					printf("CHORD> File Info = num : %d개, 파일 key : %d, 파일이름 : %s, 파일 소유주 : ID %d, 참조파일 소유주 : ID %d \n",
+						myNode.fileInfo.fileNum,
+						myNode.fileInfo.fileRef[i].Key,
+						myNode.fileInfo.fileRef[i].Name,
+						myNode.fileInfo.fileRef[i].owner.ID,
+						myNode.fileInfo.fileRef[i].refOwner.ID);
+				}
+				for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++) {
+					printf("CHORD> FileRef = num : %d개, 파일 key : %d, 파일이름 : %s, 파일 소유주 : ID %d, 참조파일 소유주 : ID %d \n",
+						myNode.chordInfo.FRefInfo.fileNum,
+						myNode.chordInfo.FRefInfo.fileRef[i].Key,
+						myNode.chordInfo.FRefInfo.fileRef[i].Name,
+						myNode.chordInfo.FRefInfo.fileRef[i].owner.ID,
+						myNode.chordInfo.FRefInfo.fileRef[i].refOwner.ID);
+				}
 				break;
+
 			case 'm':
+				if (mute) {
+					printf("\nCHORD> Mute Off!!\n");
+					mute = 0;
+				}
+				else {
+					printf("\nCHORD> Mute On!!\n");
+					mute = 1;
+				}
 				break;
 			case 'h':
 				break;
@@ -1837,4 +1892,75 @@ void procFF(void* SOCKET) {//fixfinger 메시지 처리 스레드
 	}
 
 }
+void fileSender(void* SOCKET) {
+
+	char buf[fBufSize];
+
+	FILE* fd = fopen(filename, "r");
+	if (fd == NULL)
+	{
+		printf("\n[ERROR] %s라는 이름의 파일은 존재하지 않습니다.\n", filename);
+		exit(1);
+	}
+
+	memset(&buf, 0, fBufSize);
+	int buflen;
+	while ((buflen = fread(buf, sizeof(char), fBufSize, fd)) > 0)
+	{
+		if (send(fsSock, buf, buflen, 0) < 0)
+		{
+			printf("\n[ERROR] fail to send file %s\n", filename);
+			break;
+		}
+		memset(&buf, 0, fBufSize);
+	}
+
+
+	fclose(fd);
+	closesocket(fsSock);
+
+	printf("\n");
+	Sleep(2000);
+
+	printmenu();
+
+}
+
+void fileReceiver(void* SOCKET) {
+	FILE* fd = fopen(filename, "w");
+	char buf[fBufSize];
+	memset(&buf, 0, fBufSize);
+	int buflen = 0;
+	int wrtielen;
+	while (buflen = recv(frSock, buf, fBufSize, 0))
+	{
+
+		wrtielen = fwrite(buf, sizeof(char), buflen, fd);
+		if (wrtielen < buflen)
+		{
+			printf("\n[ERROR] file write failed.\n");
+		}
+		else if (buflen)
+		{
+			break;
+		}
+
+		memset(&buf, 0, fBufSize);
+	}
+
+	Sleep(2000);
+	printf("\nCHORD> 파일 다운로드 완료!!\n");
+
+
+
+	fclose(fd);
+
+	closesocket(flSock);
+	closesocket(frSock);
+
+	printf("\n");
+	printmenu();
+
+}
+
 
