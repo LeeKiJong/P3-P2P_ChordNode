@@ -1,12 +1,15 @@
 # P2P_ChordNode
-## Table of contents
-* What's included
-* Operation process
-* Functional Introduction
-* Example
-* Error solution
-## What's included
-Within the download you'll find the following directories and files, logically grouping common assets and providing both complied and minified variations. You'll see something like this:
+## 목차
+* 포함 목록
+* 동작 과정
+* 기능 소개
+* 예
+* 오류 해결법
+* System Sequence Diagram
+* 프로그램 테스트
+## 포함 목록
+다운로드 목록에는 다음과 같은 디렉토리와 파일이 있으며 공통 에셋을 논리적으로 그룹화하고 유사 및 축소 변형을 모두 제공합니다.  
+볼 수 있는 목록:
 
 * P2P_ChordNode
    * P2P_ChordNode
@@ -15,7 +18,7 @@ Within the download you'll find the following directories and files, logically g
       * P2P_ChordNode.vcxproj.filters
    * P2P_ChordNode.sln
 
-## Operation process
+## 동작 과정
 1. Clone the repo: `git clone https://github.com/LeeKiJong/P2P_ChordNode.git` 
 2. Open the 2+ CMD Prompt
 3. Node cmd: `location.../ChordNode 192.168.0.1 <Port>`
@@ -31,7 +34,7 @@ Within the download you'll find the following directories and files, logically g
 * View Help Msg: `h`
 * Program Quit: `q`
 
-## Functional Introduction
+## 기능 소개
 1.  (c)reate: Create the chord network
 2.  (j)oin  : Join the chord network
 3.  (l)eave : Leave the chord network
@@ -44,7 +47,7 @@ Within the download you'll find the following directories and files, logically g
 10. (h)elp  : Show the help message
 11. (q)uit  : Quit the program
 
-## Example
+## 예
 1.  Node A: Network Create
 2.  Node B: Network Join
 3.  Node C: Network Join
@@ -60,8 +63,21 @@ Within the download you'll find the following directories and files, logically g
 13. Node D: File4 Download
 14. Node A: File1 Delete
 15. Node C: Network Leave  
-**`It can be regarded as normal operation when the above execution process proceeds without error.`**
+**`위의 실행 프로세스가 오류없이 진행되면 정상 작동으로 볼 수 있습니다.`**
 
-## Error solution
-* forced termination: Message ping-pong error due to network delay  `Restart Or Reboot`
-* Mute Mode Error: Ping-pong message send error due to message output. Can't resolve if it's a code issue or a message passing issue
+## 오류 해결법
+* 강제 종료: 네트워크 지연으로 인한 메시지 핑퐁 오류  `재시작 또는 재부팅`
+* 음소거 모드 오류: 메시지 출력으로 인해 Ping-pong 메시지 전송 오류가 발생. 코드 문제이거나 메시지 전달 문제인 경우 해결할 수 없습니다.
+* 파일 다운로드 오류: txt 파일은 다운로드 가능하나 hwp 파일은 아직 구현되지않음
+
+## System Sequence Diagram
+![image](https://user-images.githubusercontent.com/52438368/67140706-32a2ed80-f298-11e9-8a65-e8d2bc4be1e6.png)
+![image](https://user-images.githubusercontent.com/52438368/67140708-39c9fb80-f298-11e9-8308-d13588047c4f.png)
+![image](https://user-images.githubusercontent.com/52438368/67140718-523a1600-f298-11e9-9206-df40a8f1a4ba.png)
+
+## 프로그램 테스트
+![image](https://user-images.githubusercontent.com/52438368/67140773-f7ed8500-f298-11e9-904d-ffcde4eda4f5.png)
+![image](https://user-images.githubusercontent.com/52438368/67140781-08056480-f299-11e9-9507-2d36153ebc84.png)
+![image](https://user-images.githubusercontent.com/52438368/67140785-0f2c7280-f299-11e9-8302-ef4dc5a7ecb2.png)
+![image](https://user-images.githubusercontent.com/52438368/67140791-1f445200-f299-11e9-9c19-f0b91e2c9fd6.png)
+![image](https://user-images.githubusercontent.com/52438368/67140796-29fee700-f299-11e9-88d7-4d97090099a9.png)
