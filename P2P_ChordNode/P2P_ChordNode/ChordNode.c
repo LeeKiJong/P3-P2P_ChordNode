@@ -94,15 +94,15 @@ int main(int argc, char* argv[])
 	WSADATA wsaData;
 	int i;
 	int addrlen = sizeof(struct sockaddr);
-	int createOK = 0;	//create È®ÀÎ
-	int joinOK = 0;		//join È®ÀÎ
-	char select;		//ÀÔ·ÂÇÑ ¸Ş´º¸¦ ÀúÀåÇÒ º¯¼ö
+	int createOK = 0;	//create í™•ì¸
+	int joinOK = 0;		//join í™•ì¸
+	char select;		//ì…ë ¥í•œ ë©”ë‰´ë¥¼ ì €ì¥í•  ë³€ìˆ˜
 	int optVal = 5000;  // 5 seconds
-	char Sock_addr[21] = { 0 };//ÀÚ½Å ¼ÒÄÏÀÇ Á¤º¸¸¦ ÀúÀåÇÒ ¹®ÀÚ¿­ ¹è¿­
-	char helpIP[16] = { 0 };	//ÇïÇÁ³ëµåÀÇ IP¸¦ ÀúÀåÇÒ ¹®ÀÚ¿­ ¹è¿­
-	int helpPort;				//ÇïÇÁ³ëµåÀÇ Æ÷Æ®¹øÈ£
-	int fkey;					//ÆÄÀÏÀÇ Å°°ªÀ» ÀúÀåÇÒ º¯¼ö
-	int retVal; //¿À·ù °ËÃâ º¯¼ö
+	char Sock_addr[21] = { 0 };//ìì‹  ì†Œì¼“ì˜ ì •ë³´ë¥¼ ì €ì¥í•  ë¬¸ìì—´ ë°°ì—´
+	char helpIP[16] = { 0 };	//í—¬í”„ë…¸ë“œì˜ IPë¥¼ ì €ì¥í•  ë¬¸ìì—´ ë°°ì—´
+	int helpPort;				//í—¬í”„ë…¸ë“œì˜ í¬íŠ¸ë²ˆí˜¸
+	int fkey;					//íŒŒì¼ì˜ í‚¤ê°’ì„ ì €ì¥í•  ë³€ìˆ˜
+	int retVal; //ì˜¤ë¥˜ ê²€ì¶œ ë³€ìˆ˜
 
 	chordHeaderType helpMsg, resMsg;
 	nodeInfoType succ, pred, helper, refOwner;
@@ -114,30 +114,30 @@ int main(int argc, char* argv[])
 	printf("*****************************************************************\n");
 	printf("*         DHT-Based P2P Protocol (CHORD) Node Controller        *\n");
 	printf("*                   Ver. 0.1     Nov. 5, 2018                   *\n");
-	printf("*               (c) Kim Myeong ji & Lee Ki jong                 *\n");
+	printf("*               (c) * Lee Ki jong *\n");
 	printf("*****************************************************************\n");
 
 	myNode.nodeInfo.addrInfo.sin_family = AF_INET;
 
 	if (argc != 3) {
 		printf("[ERROR] Usage : %s <IP> <port>\n", argv[0]);
-		printf("ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.");
+		printf("í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.");
 		exit(1);
 	}
 
 	if (inet_addr(argv[1]) != INADDR_NONE)
 		myNode.nodeInfo.addrInfo.sin_addr.s_addr = inet_addr(argv[1]);
 	else {
-		printf("[ERROR] IP ÁÖ¼Ò¸¦ Àß¸ø ÀÔ·ÂÇÏ¿´½À´Ï´Ù.");
-		printf("ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.");
+		printf("[ERROR] IP ì£¼ì†Œë¥¼ ì˜ëª» ì…ë ¥í•˜ì˜€ìŠµë‹ˆë‹¤.");
+		printf("í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.");
 		exit(1);
 	}
 
 
 
 	if (atoi(argv[2]) > 65535 || atoi(argv[2]) < 49152) {
-		printf("[ERROR] Æ÷Æ® ¹øÈ£´Â 49152 <= port <= 65535 ·Î Àû¾îÁÖ¼¼¿ä.\n");
-		printf("ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.");
+		printf("[ERROR] í¬íŠ¸ ë²ˆí˜¸ëŠ” 49152 <= port <= 65535 ë¡œ ì ì–´ì£¼ì„¸ìš”.\n");
+		printf("í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.");
 		exit(1);
 	}
 	else
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 	printf(">>> Your IP address: %s, Port No: %s, ID: %d\n", argv[1], argv[2], myNode.nodeInfo.ID);
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-		printf("\nCHORD> ÃÊ±âÈ­¸¦ ½ÇÆĞÇÏ¿´½À´Ï´Ù.\n\n");
+		printf("\nCHORD> ì´ˆê¸°í™”ë¥¼ ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤.\n\n");
 
 
 	while (1) {
@@ -165,8 +165,8 @@ int main(int argc, char* argv[])
 			case 'c':
 
 				if (createOK) {
-					printf("\n[ERROR] ÀÌ¹Ì ³×Æ®¿öÅ©¸¦ »ı¼ºÇÏ¿´½À´Ï´Ù.\n");
-					printf("[ERROR] ´Ù½Ã ¼±ÅÃÇØ ÁÖ¼¼¿ä.\n\n");
+					printf("\n[ERROR] ì´ë¯¸ ë„¤íŠ¸ì›Œí¬ë¥¼ ìƒì„±í•˜ì˜€ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] ë‹¤ì‹œ ì„ íƒí•´ ì£¼ì„¸ìš”.\n\n");
 					continue;
 				}
 
@@ -183,16 +183,16 @@ int main(int argc, char* argv[])
 				retVal = setsockopt(rqSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
 
 				if (retVal == SOCKET_ERROR) {
-					printf("\n[ERROR] rqSock ¿É¼Ç ¼³Á¤ Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] rqSock ì˜µì…˜ ì„¤ì • ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
 				rpSock = socket(AF_INET, SOCK_DGRAM, 0);
 
 				if (bind(rpSock, (struct sockaddr*) & myNode.nodeInfo.addrInfo, sizeof(myNode.nodeInfo.addrInfo)) < 0) {
-					printf("\n[ERROR] rpSock ÁÖ¼Ò ¹ÙÀÎµå Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] rpSock ì£¼ì†Œ ë°”ì¸ë“œ ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
@@ -201,8 +201,8 @@ int main(int argc, char* argv[])
 				retVal = setsockopt(ffSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
 
 				if (retVal == SOCKET_ERROR) {
-					printf("\n[ERROR] rqSock ¿É¼Ç ¼³Á¤ Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] rqSock ì˜µì…˜ ì„¤ì • ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
@@ -211,13 +211,13 @@ int main(int argc, char* argv[])
 				retVal = setsockopt(ppSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
 
 				if (retVal == SOCKET_ERROR) {
-					printf("\n[ERROR] rqSock ¿É¼Ç ¼³Á¤ Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] rqSock ì˜µì…˜ ì„¤ì • ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
 				createOK = 1;
-				printf("\nCHORD> ÄÚµå ³×Æ®¿öÅ©¸¦ »ı¼ºÇÏ¿´½À´Ï´Ù.\n\n");
+				printf("\nCHORD> ì½”ë“œ ë„¤íŠ¸ì›Œí¬ë¥¼ ìƒì„±í•˜ì˜€ìŠµë‹ˆë‹¤.\n\n");
 
 				memset(&helpMsg, 0, sizeof(helpMsg));
 				memset(&resMsg, 0, sizeof(resMsg));
@@ -233,8 +233,8 @@ int main(int argc, char* argv[])
 
 
 				if (joinOK) {
-					printf("\n[ERROR] ÀÌ¹Ì ³×Æ®¿öÅ© ³»¿¡ ÀÖ½À´Ï´Ù. ¸¸µé ¼ö ¾ø½À´Ï´Ù.");
-					printf("\n[ERROR] ´Ù½Ã ¼±ÅÃÇØ ÁÖ¼¼¿ä.\n");
+					printf("\n[ERROR] ì´ë¯¸ ë„¤íŠ¸ì›Œí¬ ë‚´ì— ìˆìŠµë‹ˆë‹¤. ë§Œë“¤ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+					printf("\n[ERROR] ë‹¤ì‹œ ì„ íƒí•´ ì£¼ì„¸ìš”.\n");
 					continue;
 				}
 
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
 				helper.addrInfo.sin_family = AF_INET;
 
 				while (1) {
-					printf("\nCHORD> ÇïÆÛ ³ëµåÀÇ IP ÁÖ¼Ò¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+					printf("\nCHORD> í—¬í¼ ë…¸ë“œì˜ IP ì£¼ì†Œë¥¼ ì…ë ¥í•˜ì„¸ìš” : ");
 					memset(helpIP, 0, 16);
 					scanf("%s", helpIP);
 					fflush(stdin);
@@ -261,17 +261,17 @@ int main(int argc, char* argv[])
 						break;
 					}
 					else {
-						printf("\n[ERROR] IP ÁÖ¼Ò¸¦ Àß¸ø ÀÔ·ÂÇÏ¿´½À´Ï´Ù.\n");
+						printf("\n[ERROR] IP ì£¼ì†Œë¥¼ ì˜ëª» ì…ë ¥í•˜ì˜€ìŠµë‹ˆë‹¤.\n");
 						continue;
 					}
 				}
 
 				while (1) {
-					printf("\nCHORD> ÇïÆÛ ³ëµåÀÇ Port ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+					printf("\nCHORD> í—¬í¼ ë…¸ë“œì˜ Port ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš” : ");
 					scanf("%d", &helpPort);
 					fflush(stdin);
 					if (helpPort > 65535 || helpPort < 49152) {
-						printf("[ERROR] Æ÷Æ® ¹øÈ£´Â 49152 <= port <= 65535 ·Î Àû¾îÁÖ¼¼¿ä.\n");
+						printf("[ERROR] í¬íŠ¸ ë²ˆí˜¸ëŠ” 49152 <= port <= 65535 ë¡œ ì ì–´ì£¼ì„¸ìš”.\n");
 						continue;
 					}
 					else {
@@ -286,16 +286,16 @@ int main(int argc, char* argv[])
 				retVal = setsockopt(rqSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
 
 				if (retVal == SOCKET_ERROR) {
-					printf("\n[ERROR] rqSock ¿É¼Ç ¼³Á¤ Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] rqSock ì˜µì…˜ ì„¤ì • ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
 				rpSock = socket(AF_INET, SOCK_DGRAM, 0);
 
 				if (bind(rpSock, (struct sockaddr*) & myNode.nodeInfo.addrInfo, sizeof(myNode.nodeInfo.addrInfo)) < 0) {
-					printf("\n[ERROR] rpSock ÁÖ¼Ò ¹ÙÀÎµå Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] rpSock ì£¼ì†Œ ë°”ì¸ë“œ ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
@@ -304,8 +304,8 @@ int main(int argc, char* argv[])
 				retVal = setsockopt(ffSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
 
 				if (retVal == SOCKET_ERROR) {
-					printf("\n[ERROR] ffSock ¿É¼Ç ¼³Á¤ Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] ffSock ì˜µì…˜ ì„¤ì • ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
@@ -314,8 +314,8 @@ int main(int argc, char* argv[])
 				retVal = setsockopt(ppSock, SOL_SOCKET, SO_RCVTIMEO, (char*)& optVal, sizeof(optVal));
 
 				if (retVal == SOCKET_ERROR) {
-					printf("\n[ERROR] ppSock ¿É¼Ç ¼³Á¤ Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-					printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+					printf("\n[ERROR] ppSock ì˜µì…˜ ì„¤ì • ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+					printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 					exit(1);
 				}
 
@@ -480,17 +480,17 @@ int main(int argc, char* argv[])
 
 			case 'a':
 
-				printf("CHORD> Ãß°¡ÇÒ ÆÄÀÏÀº ÇÁ·Î±×·¥°ú °°Àº Æú´õ ¾È¿¡ À§Ä¡ÇÏ¿©¾ß ÇÕ´Ï´Ù.\n");
-				printf("CHORD> ÆÄÀÏ ÀÌ¸§ÀÇ ÃÖ´ë Å©±â´Â 32ÀÔ´Ï´Ù.\n");
-				printf("CHORD> Ãß°¡ÇÒ ÆÄÀÏ¸íÀ» ÀÔ·ÂÇÏ¼¼¿ä : ");
+				printf("CHORD> ì¶”ê°€í•  íŒŒì¼ì€ í”„ë¡œê·¸ë¨ê³¼ ê°™ì€ í´ë” ì•ˆì— ìœ„ì¹˜í•˜ì—¬ì•¼ í•©ë‹ˆë‹¤.\n");
+				printf("CHORD> íŒŒì¼ ì´ë¦„ì˜ ìµœëŒ€ í¬ê¸°ëŠ” 32ì…ë‹ˆë‹¤.\n");
+				printf("CHORD> ì¶”ê°€í•  íŒŒì¼ëª…ì„ ì…ë ¥í•˜ì„¸ìš” : ");
 				scanf("%s", filename);
 				fkey = str_hash(filename);
-				printf("CHORD> µî·ÏÇÒ ÆÄÀÏ¸í : %s, Key: %d\n", filename, fkey);
+				printf("CHORD> ë“±ë¡í•  íŒŒì¼ëª… : %s, Key: %d\n", filename, fkey);
 
 				FILE* fd;
 
 				if ((fd = fopen(filename, "rt")) == NULL) {
-					printf("[ERROR] %s¶ó´Â ÀÌ¸§ÀÇ ÆÄÀÏÀº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+					printf("[ERROR] %së¼ëŠ” ì´ë¦„ì˜ íŒŒì¼ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 					break;
 				}
 
@@ -498,18 +498,18 @@ int main(int argc, char* argv[])
 
 				for (i = 0; i < myNode.fileInfo.fileNum; i++) {
 					if (myNode.fileInfo.fileRef[i].Key == fkey) {
-						printf("[ERROR] %s ÆÄÀÏÀº ÀÌ¹Ì µî·Ï µÇ¾ú½À´Ï´Ù.", filename);
+						printf("[ERROR] %s íŒŒì¼ì€ ì´ë¯¸ ë“±ë¡ ë˜ì—ˆìŠµë‹ˆë‹¤.", filename);
 						break;
 
 					}
 				}
 
-				if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.Pre.ID) {	//³ëµå°¡ ÇÏ³ª¶ó¸é
-					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Key = fkey;//³ëµå¿¡ ÆÄÀÏÀÇ Å° °ª ÀÔ·Â
-					strcpy(myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Name, filename);//³ëµå¿¡ ÆÄÀÏ ÀÌ¸§ ÀÔ·Â
-					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].owner = myNode.nodeInfo;//³ëµå¿¡ ÆÄÀÏÀÇ ¼ÒÀ¯ÁÖ¸¦ ÀÚ½ÅÀ¸·Î ÀÔ·Â
-					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].refOwner = myNode.nodeInfo;//³ëµå¿¡ ÆÄÀÏÀÇ ¼ÒÀ¯ÁÖ¸¦ ÀÚ½ÅÀ¸·Î ÀÔ·Â
-					myNode.fileInfo.fileNum++;//³ëµå°¡ °¡Áö°í ÀÖ´Â ÆÄÀÏ ¼ö Áõ°¡½ÃÅ´
+				if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.Pre.ID) {	//ë…¸ë“œê°€ í•˜ë‚˜ë¼ë©´
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Key = fkey;//ë…¸ë“œì— íŒŒì¼ì˜ í‚¤ ê°’ ì…ë ¥
+					strcpy(myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Name, filename);//ë…¸ë“œì— íŒŒì¼ ì´ë¦„ ì…ë ¥
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].owner = myNode.nodeInfo;//ë…¸ë“œì— íŒŒì¼ì˜ ì†Œìœ ì£¼ë¥¼ ìì‹ ìœ¼ë¡œ ì…ë ¥
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].refOwner = myNode.nodeInfo;//ë…¸ë“œì— íŒŒì¼ì˜ ì†Œìœ ì£¼ë¥¼ ìì‹ ìœ¼ë¡œ ì…ë ¥
+					myNode.fileInfo.fileNum++;//ë…¸ë“œê°€ ê°€ì§€ê³  ìˆëŠ” íŒŒì¼ ìˆ˜ ì¦ê°€ì‹œí‚´
 
 					myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum]
 						= myNode.fileInfo.fileRef[myNode.fileInfo.fileNum - 1];
@@ -542,7 +542,7 @@ int main(int argc, char* argv[])
 
 					pred = resMsg.nodeInfo;
 					if (resMsg.moreInfo)
-						printf("CHORD> FileÀÇ Pred IPÁÖ¼Ò : %s, Port ¹øÈ£ : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
+						printf("CHORD> Fileì˜ Pred IPì£¼ì†Œ : %s, Port ë²ˆí˜¸ : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
 
 
 					helpMsg.msgID = 5;
@@ -563,13 +563,13 @@ int main(int argc, char* argv[])
 					}
 
 
-					//fkeyÀÇ Successor
+					//fkeyì˜ Successor
 					succ = resMsg.nodeInfo;
 
 					if (resMsg.moreInfo)
-						printf("CHORD> FileÀÇ Successor IPÁÖ¼Ò : %s, Port ¹øÈ£ : %d, ID : %d\n", inet_ntoa(succ.addrInfo.sin_addr), ntohs(succ.addrInfo.sin_port), succ.ID);
+						printf("CHORD> Fileì˜ Successor IPì£¼ì†Œ : %s, Port ë²ˆí˜¸ : %d, ID : %d\n", inet_ntoa(succ.addrInfo.sin_addr), ntohs(succ.addrInfo.sin_port), succ.ID);
 
-					//Áßº¹ È®ÀÎ
+					//ì¤‘ë³µ í™•ì¸
 					memset(&helpMsg, 0, sizeof(helpMsg));
 					helpMsg.msgID = 11;
 					helpMsg.msgType = 0;
@@ -590,17 +590,17 @@ int main(int argc, char* argv[])
 					}
 
 					if (resMsg.moreInfo) {
-						printf("[ERROR] %s ÆÄÀÏÀº ÀÌ¹Ì µî·Ï µÇ¾ú½À´Ï´Ù.", filename);
+						printf("[ERROR] %s íŒŒì¼ì€ ì´ë¯¸ ë“±ë¡ ë˜ì—ˆìŠµë‹ˆë‹¤.", filename);
 						break;
 					}
 
-					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Key = fkey;//³ëµå¿¡ ÆÄÀÏÀÇ Å° °ª ÀÔ·Â
-					strcpy(myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Name, filename);//³ëµå¿¡ ÆÄÀÏ ÀÌ¸§ ÀÔ·Â
-					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].owner = myNode.nodeInfo;//³ëµå¿¡ ÆÄÀÏÀÇ ¼ÒÀ¯ÁÖ¸¦ ÀÚ½ÅÀ¸·Î ÀÔ·Â
-					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].refOwner = succ;//³ëµå¿¡ ÆÄÀÏÀÇ ¼ÒÀ¯ÁÖ¸¦ ÀÚ½ÅÀ¸·Î ÀÔ·Â
-					myNode.fileInfo.fileNum++;//³ëµå°¡ °¡Áö°í ÀÖ´Â ÆÄÀÏ ¼ö Áõ°¡½ÃÅ´
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Key = fkey;//ë…¸ë“œì— íŒŒì¼ì˜ í‚¤ ê°’ ì…ë ¥
+					strcpy(myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].Name, filename);//ë…¸ë“œì— íŒŒì¼ ì´ë¦„ ì…ë ¥
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].owner = myNode.nodeInfo;//ë…¸ë“œì— íŒŒì¼ì˜ ì†Œìœ ì£¼ë¥¼ ìì‹ ìœ¼ë¡œ ì…ë ¥
+					myNode.fileInfo.fileRef[myNode.fileInfo.fileNum].refOwner = succ;//ë…¸ë“œì— íŒŒì¼ì˜ ì†Œìœ ì£¼ë¥¼ ìì‹ ìœ¼ë¡œ ì…ë ¥
+					myNode.fileInfo.fileNum++;//ë…¸ë“œê°€ ê°€ì§€ê³  ìˆëŠ” íŒŒì¼ ìˆ˜ ì¦ê°€ì‹œí‚´
 
-											  //keyÀÇ Successor¿¡°Ô ÆÄÀÏÀÇ ÂüÁ¶Á¤º¸ ÀÔ·Â¿äÃ»
+											  //keyì˜ Successorì—ê²Œ íŒŒì¼ì˜ ì°¸ì¡°ì •ë³´ ì…ë ¥ìš”ì²­
 											  //File Reference Add Request
 					memset(&helpMsg, 0, sizeof(helpMsg));
 					helpMsg.msgID = 8;
@@ -622,24 +622,24 @@ int main(int argc, char* argv[])
 					if (!mute)
 						printf("CHORD> FILE REF ADD RESPONSE MSG HAS BEEN RECEIVED!\n");
 					if (resMsg.moreInfo == 1) {
-						printf("CHORD> ÆÄÀÏ ÂüÁ¶Á¤º¸°¡ Successor¿¡°Ô ¼º°øÀûÀ¸·Î º¸³»Á³½À´Ï´Ù.\n");
+						printf("CHORD> íŒŒì¼ ì°¸ì¡°ì •ë³´ê°€ Successorì—ê²Œ ì„±ê³µì ìœ¼ë¡œ ë³´ë‚´ì¡ŒìŠµë‹ˆë‹¤.\n");
 					}
 				}
-				printf("\nCHORD> ÆÄÀÏ Ãß°¡ ¿Ï·á!!\n");
+				printf("\nCHORD> íŒŒì¼ ì¶”ê°€ ì™„ë£Œ!!\n");
 				break;
 
 			case 'd':
-				printf("CHORD> »èÁ¦ÇÒ ÆÄÀÏ¸íÀ» ÀÔ·ÂÇÏ¼¼¿ä : ");
+				printf("CHORD> ì‚­ì œí•  íŒŒì¼ëª…ì„ ì…ë ¥í•˜ì„¸ìš” : ");
 				scanf("%s", filename);
 
 				fkey = str_hash(filename);
 
-				//³ëµå°¡ ÇÏ³ªÀÏ ¶§
+				//ë…¸ë“œê°€ í•˜ë‚˜ì¼ ë•Œ
 				if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.finger[0].ID)
 				{
 					if (myNode.fileInfo.fileNum == 0)
 					{
-						printf("[ERROR] file(%s)Àº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+						printf("[ERROR] file(%s)ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 					}
 					for (i = 0; i < myNode.fileInfo.fileNum; i++)
 					{
@@ -651,15 +651,15 @@ int main(int argc, char* argv[])
 						}
 						if (i == myNode.fileInfo.fileNum - 1)
 						{
-							printf("[ERROR] file(%s)Àº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+							printf("[ERROR] file(%s)ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 						}
 					}
 
 				}
 				else
 				{
-					int mycheck = 0;		//ÀÚ½ÅÀÌ ÆÄÀÏÀ» ¼ÒÀ¯Çß´ÂÁö Ã¼Å©
-					int fingercheck = 0;	//ÀÚ½ÅÀÇ ÇÎ°Å ³ëµå°¡ ÆÄÀÏÀ» ¼ÒÀ¯Çß´ÂÁö Ã¼Å©
+					int mycheck = 0;		//ìì‹ ì´ íŒŒì¼ì„ ì†Œìœ í–ˆëŠ”ì§€ ì²´í¬
+					int fingercheck = 0;	//ìì‹ ì˜ í•‘ê±° ë…¸ë“œê°€ íŒŒì¼ì„ ì†Œìœ í–ˆëŠ”ì§€ ì²´í¬
 					for (i = 0; i < myNode.fileInfo.fileNum; i++)
 					{
 						if (myNode.fileInfo.fileRef[i].Key == fkey)
@@ -688,7 +688,7 @@ int main(int argc, char* argv[])
 
 							if (resMsg.moreInfo)
 								printf("CHORD> Owner's FILE %s has been deleted!\n", filename);
-							//myNodeÀÇ ÆÄÀÏ »èÁ¦	
+							//myNodeì˜ íŒŒì¼ ì‚­ì œ	
 							for (i = 0; i < myNode.fileInfo.fileNum; i++) {
 								if (myNode.fileInfo.fileRef[i].Key == fkey) {
 									for (int j = i; j < myNode.fileInfo.fileNum - 1; j++) {
@@ -702,7 +702,7 @@ int main(int argc, char* argv[])
 						}
 					}
 					if (mycheck) {
-						printf("CHORD> file(%s) »èÁ¦ ¿Ï·á\n", filename);
+						printf("CHORD> file(%s) ì‚­ì œ ì™„ë£Œ\n", filename);
 						break;
 					}
 					for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++)
@@ -710,8 +710,8 @@ int main(int argc, char* argv[])
 						if (myNode.chordInfo.FRefInfo.fileRef[i].Key == fkey)
 						{
 							fingercheck = 1;
-							printf("[ERROR] file(%s)Àº N%d¿¡ ÀÖ½À´Ï´Ù.\n", filename, myNode.chordInfo.FRefInfo.fileRef[i].owner.ID);
-							printf("[ERROR] ÆÄÀÏÀº ¼ÒÀ¯ÁÖ¸¸ »èÁ¦ÇÒ ¼ö ÀÖ½À´Ï´Ù.\n");
+							printf("[ERROR] file(%s)ì€ N%dì— ìˆìŠµë‹ˆë‹¤.\n", filename, myNode.chordInfo.FRefInfo.fileRef[i].owner.ID);
+							printf("[ERROR] íŒŒì¼ì€ ì†Œìœ ì£¼ë§Œ ì‚­ì œí•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.\n");
 							break;
 						}
 					}
@@ -738,7 +738,7 @@ int main(int argc, char* argv[])
 					}
 					pred = resMsg.nodeInfo;
 					if (resMsg.moreInfo)
-						printf("CHORD> FileÀÇ Pred IPÁÖ¼Ò : %s, Port ¹øÈ£ : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
+						printf("CHORD> Fileì˜ Pred IPì£¼ì†Œ : %s, Port ë²ˆí˜¸ : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
 
 					helpMsg.msgID = 5;
 					helpMsg.msgType = 0;
@@ -758,7 +758,7 @@ int main(int argc, char* argv[])
 					}
 					refOwner = resMsg.nodeInfo;
 					if (resMsg.moreInfo)
-						printf("CHORD> FileÀÇ refOwner IPÁÖ¼Ò : %s, Port ¹øÈ£ : %d, ID : %d\n", inet_ntoa(refOwner.addrInfo.sin_addr), ntohs(refOwner.addrInfo.sin_port), refOwner.ID);
+						printf("CHORD> Fileì˜ refOwner IPì£¼ì†Œ : %s, Port ë²ˆí˜¸ : %d, ID : %d\n", inet_ntoa(refOwner.addrInfo.sin_addr), ntohs(refOwner.addrInfo.sin_port), refOwner.ID);
 
 					helpMsg.msgID = 11;
 					helpMsg.msgType = 0;
@@ -778,18 +778,18 @@ int main(int argc, char* argv[])
 
 					}
 					if (resMsg.moreInfo) {
-						printf("[ERROR] file(%s)Àº N%d¿¡ ÀÖ½À´Ï´Ù.\n", filename, resMsg.fileInfo.owner.ID);
-						printf("[ERROR] ÆÄÀÏÀº ¼ÒÀ¯ÁÖ¸¸ »èÁ¦ÇÒ ¼ö ÀÖ½À´Ï´Ù.\n");
+						printf("[ERROR] file(%s)ì€ N%dì— ìˆìŠµë‹ˆë‹¤.\n", filename, resMsg.fileInfo.owner.ID);
+						printf("[ERROR] íŒŒì¼ì€ ì†Œìœ ì£¼ë§Œ ì‚­ì œí•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.\n");
 					}
 					else
-						printf("[ERROR] file(%s)Àº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+						printf("[ERROR] file(%s)ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 
 				}
 
 				break;
 
 			case 's':
-				printf("CHORD> ´Ù¿î·ÎµåÇÒ ÆÄÀÏ¸íÀ» ÀÔ·ÂÇÏ¼¼¿ä : ");
+				printf("CHORD> ë‹¤ìš´ë¡œë“œí•  íŒŒì¼ëª…ì„ ì…ë ¥í•˜ì„¸ìš” : ");
 				scanf("%s", filename);
 				fkey = str_hash(filename);
 
@@ -799,18 +799,18 @@ int main(int argc, char* argv[])
 				{
 					if (myNode.fileInfo.fileNum == 0)
 					{
-						printf("[ERROR] file(%s)Àº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+						printf("[ERROR] file(%s)ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 					}
 					for (i = 0; i < myNode.fileInfo.fileNum; i++)
 					{
 						if (myNode.fileInfo.fileRef[i].Key == fkey)
 						{
-							printf("[ERROR] file(%s)Àº ÀÌ¹Ì °¡Áö°í ÀÖ½À´Ï´Ù.\n", filename);
+							printf("[ERROR] file(%s)ì€ ì´ë¯¸ ê°€ì§€ê³  ìˆìŠµë‹ˆë‹¤.\n", filename);
 							break;
 						}
 						if (i == myNode.fileInfo.fileNum - 1)
 						{
-							printf("[ERROR] file(%s)Àº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+							printf("[ERROR] file(%s)ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 						}
 					}
 
@@ -824,7 +824,7 @@ int main(int argc, char* argv[])
 						if (myNode.fileInfo.fileRef[i].Key == fkey)
 						{
 							mycheck = 1;
-							printf("[ERROR] file(%s)Àº ÀÌ¹Ì °¡Áö°í ÀÖ½À´Ï´Ù.\n", filename);
+							printf("[ERROR] file(%s)ì€ ì´ë¯¸ ê°€ì§€ê³  ìˆìŠµë‹ˆë‹¤.\n", filename);
 							break;
 						}
 					}
@@ -861,7 +861,7 @@ int main(int argc, char* argv[])
 						}
 						pred = resMsg.nodeInfo;
 						if (resMsg.moreInfo)
-							printf("CHORD> FileÀÇ Pred IPÁÖ¼Ò : %s, Port ¹øÈ£ : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
+							printf("CHORD> Fileì˜ Pred IPì£¼ì†Œ : %s, Port ë²ˆí˜¸ : %d, ID : %d\n", inet_ntoa(pred.addrInfo.sin_addr), ntohs(pred.addrInfo.sin_port), pred.ID);
 
 						helpMsg.msgID = 5;
 						helpMsg.msgType = 0;
@@ -880,7 +880,7 @@ int main(int argc, char* argv[])
 
 						}
 						refOwner = resMsg.nodeInfo;
-						printf("CHORD> FileÀÇ refOwner IPÁÖ¼Ò : %s, Port ¹øÈ£ : %d, ID : %d\n", inet_ntoa(refOwner.addrInfo.sin_addr), ntohs(refOwner.addrInfo.sin_port), refOwner.ID);
+						printf("CHORD> Fileì˜ refOwner IPì£¼ì†Œ : %s, Port ë²ˆí˜¸ : %d, ID : %d\n", inet_ntoa(refOwner.addrInfo.sin_addr), ntohs(refOwner.addrInfo.sin_port), refOwner.ID);
 
 						helpMsg.msgID = 11;
 						helpMsg.msgType = 0;
@@ -905,7 +905,7 @@ int main(int argc, char* argv[])
 						}
 						else {
 							fingercheck = 2;
-							printf("[ERROR] file(%s)Àº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+							printf("[ERROR] file(%s)ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 						}
 
 					}
@@ -924,15 +924,15 @@ int main(int argc, char* argv[])
 						printf("\nCHORD> FILE DOWN REQUEST MSG HAS BEEN SENT!\n");
 					flSock = socket(AF_INET, SOCK_STREAM, 0); // for accepting file down request 
 					if (bind(flSock, (struct sockaddr*) & myNode.nodeInfo.addrInfo, sizeof(myNode.nodeInfo.addrInfo)) == SOCKET_ERROR) {
-						printf("\n[ERROR] flSock ¹ÙÀÎµå Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-						printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+						printf("\n[ERROR] flSock ë°”ì¸ë“œ ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+						printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 						exit(1);
 					}
 
 					listen(flSock, SOMAXCONN);
 					if (flSock == SOCKET_ERROR) {
-						printf("\n[ERROR] flSock ¼³Á¤ Áß ¿¡·¯°¡ »ı°å½À´Ï´Ù.\n");
-						printf("[ERROR] ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n\n");
+						printf("\n[ERROR] flSock ì„¤ì • ì¤‘ ì—ëŸ¬ê°€ ìƒê²¼ìŠµë‹ˆë‹¤.\n");
+						printf("[ERROR] í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n\n");
 						exit(1);
 					}
 
@@ -950,9 +950,9 @@ int main(int argc, char* argv[])
 					{
 						printf("CHORD> FILE OWNER = IP : %s, Port : %d, ID : %d\n", inet_ntoa(Owner.addrInfo.sin_addr), ntohs(Owner.addrInfo.sin_port), Owner.ID);
 
-						printf("\nCHORD> ´Ù¿î·Îµå ¹ŞÀ» ÆÄÀÏÀÇ ÀÌ¸§ : %s\n", filename);
-						printf("\nCHORD> ´Ù¿î·Îµå ¹ŞÀ» ÆÄÀÏÀÇ Å° : %d\n", fkey);
-						printf("CHORD> ´Ù¿î·Îµå ¹ŞÀ» ÆÄÀÏÀÇ Å©±â : %d\n", resMsg.bodySize);
+						printf("\nCHORD> ë‹¤ìš´ë¡œë“œ ë°›ì„ íŒŒì¼ì˜ ì´ë¦„ : %s\n", filename);
+						printf("\nCHORD> ë‹¤ìš´ë¡œë“œ ë°›ì„ íŒŒì¼ì˜ í‚¤ : %d\n", fkey);
+						printf("CHORD> ë‹¤ìš´ë¡œë“œ ë°›ì„ íŒŒì¼ì˜ í¬ê¸° : %d\n", resMsg.bodySize);
 					}
 
 					struct sockaddr_in client;
@@ -980,7 +980,7 @@ int main(int argc, char* argv[])
 				printf("CHORD> myInfo = IP : %s, Port : %d, ID : %d\n", inet_ntoa(myNode.nodeInfo.addrInfo.sin_addr), ntohs(myNode.nodeInfo.addrInfo.sin_port), myNode.nodeInfo.ID);
 
 				for (i = 0; i < myNode.fileInfo.fileNum; i++) {
-					printf("CHORD> File Info = num : %d°³, ÆÄÀÏ key : %d, ÆÄÀÏÀÌ¸§ : %s, ÆÄÀÏ ¼ÒÀ¯ÁÖ : ID %d, ÂüÁ¶ÆÄÀÏ ¼ÒÀ¯ÁÖ : ID %d \n",
+					printf("CHORD> File Info = num : %dê°œ, íŒŒì¼ key : %d, íŒŒì¼ì´ë¦„ : %s, íŒŒì¼ ì†Œìœ ì£¼ : ID %d, ì°¸ì¡°íŒŒì¼ ì†Œìœ ì£¼ : ID %d \n",
 						myNode.fileInfo.fileNum,
 						myNode.fileInfo.fileRef[i].Key,
 						myNode.fileInfo.fileRef[i].Name,
@@ -988,7 +988,7 @@ int main(int argc, char* argv[])
 						myNode.fileInfo.fileRef[i].refOwner.ID);
 				}
 				for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++) {
-					printf("CHORD> FileRef = num : %d°³, ÆÄÀÏ key : %d, ÆÄÀÏÀÌ¸§ : %s, ÆÄÀÏ ¼ÒÀ¯ÁÖ : ID %d, ÂüÁ¶ÆÄÀÏ ¼ÒÀ¯ÁÖ : ID %d \n",
+					printf("CHORD> FileRef = num : %dê°œ, íŒŒì¼ key : %d, íŒŒì¼ì´ë¦„ : %s, íŒŒì¼ ì†Œìœ ì£¼ : ID %d, ì°¸ì¡°íŒŒì¼ ì†Œìœ ì£¼ : ID %d \n",
 						myNode.chordInfo.FRefInfo.fileNum,
 						myNode.chordInfo.FRefInfo.fileRef[i].Key,
 						myNode.chordInfo.FRefInfo.fileRef[i].Name,
@@ -1073,7 +1073,7 @@ void printmenu()
 	printf("CHORD> Enter a command - (q)uit  : Quit the program\n");
 	printf("CHORD> Enter your command ('help' for help message).\n");
 
-	printf("CHORD> ¸Ş´º¸¦ ¼±ÅÃÇÏ¼¼¿ä : ");
+	printf("CHORD> ë©”ë‰´ë¥¼ ì„ íƒí•˜ì„¸ìš” : ");
 }
 
 
@@ -1434,7 +1434,7 @@ void procRecvMsg(void* SOCKET) {
 		else if (resMsg.msgID == 8) {
 			// File Reference Add
 
-			//Succ¿¡ ÂüÁ¶Á¤º¸ ³Ö±â			
+			//Succì— ì°¸ì¡°ì •ë³´ ë„£ê¸°			
 			myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum]
 				= resMsg.fileInfo;
 			myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum].refOwner = myNode.nodeInfo;
@@ -1452,9 +1452,9 @@ void procRecvMsg(void* SOCKET) {
 			//File Reference Delete 
 			for (i = 0; i < myNode.chordInfo.FRefInfo.fileNum; i++) {
 				if (myNode.chordInfo.FRefInfo.fileRef[i].Key == resMsg.fileInfo.Key) {
-					memset(&myNode.chordInfo.FRefInfo.fileRef[i], 0, sizeof(myNode.chordInfo.FRefInfo.fileRef[i]));//Succ¿¡ ÂüÁ¶Á¤º¸ »èÁ¦		
+					memset(&myNode.chordInfo.FRefInfo.fileRef[i], 0, sizeof(myNode.chordInfo.FRefInfo.fileRef[i]));//Succì— ì°¸ì¡°ì •ë³´ ì‚­ì œ		
 					for (int j = i; j < myNode.chordInfo.FRefInfo.fileNum - 1; j++) {
-						myNode.chordInfo.FRefInfo.fileRef[j] = myNode.chordInfo.FRefInfo.fileRef[j + 1];//Succ¿¡ ÂüÁ¶Á¤º¸ ÀçÁ¤·Ä				
+						myNode.chordInfo.FRefInfo.fileRef[j] = myNode.chordInfo.FRefInfo.fileRef[j + 1];//Succì— ì°¸ì¡°ì •ë³´ ì¬ì •ë ¬				
 					}
 				}
 			}
@@ -1489,7 +1489,7 @@ void procRecvMsg(void* SOCKET) {
 					FILE* fp = fopen(filename, "r");
 					int filesize = 0;
 					if (fp == NULL) {
-						perror("ÆÄÀÏ ÀÔÃâ·Â ¿À·ù");
+						perror("íŒŒì¼ ì…ì¶œë ¥ ì˜¤ë¥˜");
 						return -1;
 					}
 					fseek(fp, 0, SEEK_END);
@@ -1540,7 +1540,7 @@ void procRecvMsg(void* SOCKET) {
 		}
 		else if (resMsg.msgID == 13)
 		{
-			//³ëµå »ıÁ¸ È®ÀÎ
+			//ë…¸ë“œ ìƒì¡´ í™•ì¸
 			memset(&helpMsg, 0, sizeof(helpMsg));
 			sendto(rpSock, (char*)& helpMsg, sizeof(helpMsg), 0, (struct sockaddr*) & clintaddr, addrlen);
 		}
@@ -1583,7 +1583,7 @@ void procPP(void* SOCKET) {
 
 				myNode.chordInfo.fingerInfo.Pre.ID = 0;
 				PPsucc2 = 1;
-				printf("\nCHORD> leave ÁøÇàÁß...\n");
+				printf("\nCHORD> leave ì§„í–‰ì¤‘...\n");
 
 
 			}
@@ -1606,7 +1606,7 @@ void procPP(void* SOCKET) {
 					retVal = recvfrom(ppSock, (char*)& resMsg, sizeof(resMsg), 0, (struct sockaddr*) & myNode.chordInfo.fingerInfo.finger[i].addrInfo, &addrlen);
 
 					if (retVal < 0) {
-						printf("\nCHORD> leave ÁøÇàÁß...\n");
+						printf("\nCHORD> leave ì§„í–‰ì¤‘...\n");
 						PPsucc2 = 1;
 						nodeInfoType pred;
 						if (i == baseM - 1) {
@@ -1725,7 +1725,7 @@ void procPP(void* SOCKET) {
 
 					if (retVal < 0) {
 						if (myNode.nodeInfo.ID == myNode.chordInfo.fingerInfo.Pre.ID) {
-							myNode.fileInfo.fileRef[i].refOwner = myNode.nodeInfo;//³ëµå¿¡ ÆÄÀÏÀÇ ¼ÒÀ¯ÁÖ¸¦ ÀÚ½ÅÀ¸·Î ÀÔ·Â
+							myNode.fileInfo.fileRef[i].refOwner = myNode.nodeInfo;//ë…¸ë“œì— íŒŒì¼ì˜ ì†Œìœ ì£¼ë¥¼ ìì‹ ìœ¼ë¡œ ì…ë ¥
 
 
 							myNode.chordInfo.FRefInfo.fileRef[myNode.chordInfo.FRefInfo.fileNum]
@@ -1776,10 +1776,10 @@ void procPP(void* SOCKET) {
 								if (retVal >= 0)
 									break;
 
-								//fkeyÀÇ Successor
+								//fkeyì˜ Successor
 								nodeInfoType succ = resMsg.nodeInfo;
 
-								//Áßº¹ È®ÀÎ
+								//ì¤‘ë³µ í™•ì¸
 								memset(&helpMsg, 0, sizeof(helpMsg));
 								helpMsg.msgID = 11;
 								helpMsg.msgType = 0;
@@ -1805,7 +1805,7 @@ void procPP(void* SOCKET) {
 								myNode.fileInfo.fileRef[i].refOwner = succ;
 
 
-								//keyÀÇ Successor¿¡°Ô ÆÄÀÏÀÇ ÂüÁ¶Á¤º¸ ÀÔ·Â¿äÃ»
+								//keyì˜ Successorì—ê²Œ íŒŒì¼ì˜ ì°¸ì¡°ì •ë³´ ì…ë ¥ìš”ì²­
 								//File Reference Add Request
 								memset(&helpMsg, 0, sizeof(helpMsg));
 								helpMsg.msgID = 8;
@@ -1833,14 +1833,14 @@ void procPP(void* SOCKET) {
 
 				}
 			}
-			printf("\nCHORD> leave Á¾·á...\n");
+			printf("\nCHORD> leave ì¢…ë£Œ...\n");
 		}
 
 	}
 
 
 }
-void procFF(void* SOCKET) {//fixfinger ¸Ş½ÃÁö Ã³¸® ½º·¹µå
+void procFF(void* SOCKET) {//fixfinger ë©”ì‹œì§€ ì²˜ë¦¬ ìŠ¤ë ˆë“œ
 
 	while (!exitFlag) {
 		int i;
@@ -1899,7 +1899,7 @@ void fileSender(void* SOCKET) {
 	FILE* fd = fopen(filename, "r");
 	if (fd == NULL)
 	{
-		printf("\n[ERROR] %s¶ó´Â ÀÌ¸§ÀÇ ÆÄÀÏÀº Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n", filename);
+		printf("\n[ERROR] %së¼ëŠ” ì´ë¦„ì˜ íŒŒì¼ì€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n", filename);
 		exit(1);
 	}
 
@@ -1949,7 +1949,7 @@ void fileReceiver(void* SOCKET) {
 	}
 
 	Sleep(2000);
-	printf("\nCHORD> ÆÄÀÏ ´Ù¿î·Îµå ¿Ï·á!!\n");
+	printf("\nCHORD> íŒŒì¼ ë‹¤ìš´ë¡œë“œ ì™„ë£Œ!!\n");
 
 
 
